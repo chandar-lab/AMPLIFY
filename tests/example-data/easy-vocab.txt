@@ -1,0 +1,14 @@
+<bos>
+<eos>
+<pad>
+<mask>
+A
+C
+D
+E
+G
+S
+T
+V
+W
+<unk>
