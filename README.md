@@ -74,3 +74,20 @@ similarity_measures = amplify.inference.compare_sequences_to_human_text(
     target_sequences=example_target_sequences,
 )
 ```
+
+## Citations
+
+If you find the models useful in your research, we ask that you cite the paper:
+```bibtex
+@article{Fournier2024.09.23.614603,
+	title        = {Protein Language Models: Is Scaling Necessary?},
+	author       = {Fournier, Quentin and Vernon, Robert M. and van der Sloot, Almer and Schulz, Benjamin and Chandar, Sarath and Langmead, Christopher James},
+	year         = {2024},
+	journal      = {bioRxiv},
+	publisher    = {Cold Spring Harbor Laboratory},
+	doi          = {10.1101/2024.09.23.614603},
+	url          = {https://www.biorxiv.org/content/early/2024/09/23/2024.09.23.614603},
+	elocation-id = {2024.09.23.614603},
+	eprint       = {https://www.biorxiv.org/content/early/2024/09/23/2024.09.23.614603.full.pdf}
+}
+```
