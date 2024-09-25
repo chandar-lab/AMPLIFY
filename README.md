@@ -15,8 +15,7 @@ python3 -m pip install --upgrade pip && \
 python3 -m pip install --editable $REPO_DIR[dev]
 ```
 
-Note that `[dev]` includes the necessary dependencies to verify the installation
-and build the Sphinx documentation.
+Note that `[dev]` includes the necessary dependencies to verify the installation and build the Sphinx documentation.
 
 Verify the installation is working (GPU required) with:
 
@@ -28,14 +27,52 @@ cd $REPO_DIR && python3 -m pytest
 
 The API documentation is available in Sphinx format.
 
-To build the associated HTML pages, ensure Sphinx is installed
-in the currently active Python environment, and run:
+To build the associated HTML pages, ensure Sphinx is installed in the currently active Python environment, and run:
 
 ```
 sphinx-build -M html docs/source/ docs/build/
 ```
 
 The top-level page is located at: `docs/build/html/index.html`
+
+## Datasets and Checkpoints
+
+The datasets and checkpoints are available on [TBA](). Bellow are the links to download individual `.zip` archives.
+
+### Datasets
+
+Sequence-only validation sets
+
+- UniProt (reference proteomes): [TBA]()
+- OAS (random split): [TBA]()
+- SCOP (random split): [TBA]()
+
+Structure validation sets
+
+- CASP14: [TBA]()
+- CASP15: [TBA]()
+- CAMEO: [TBA]()
+
+Train sets
+
+- UniRef100: [TBA]()
+- UniRef50: [TBA]()
+- OAS: [TBA]()
+- SCOP: [TBA]()
+
+Note: All datasets were downloaded in December 2023. To ensure compatibility with the codebase, the FASTA files must be converted into CSV format using [`fasta_to_csv.py`](scripts/fasta_to_csv.py).
+
+### Checkpoints
+
+We provide both the final AMPLIFY model checkpoints and intermediate base models (Stage 1, no extension to 2048 tokens).
+
+- AMPLIFY 350M: [TBA]()
+- AMPLIFY 120M: [TBA]()
+- AMPLIFY 350M base: [TBA]()
+- AMPLIFY 120M base: [TBA]()
+
+**Important**: the `config.yaml` specifies a relative path to the vocabulary `vocab_path`. You may need to update this
+path depending on where you run the the scripts that loads the models.
 
 ## Quickstart
 
@@ -45,8 +82,7 @@ Build the docs and see `usage.html`, or the `.rst` source at `docs/source/usage.
 
 ### Measuring Similarity to Human Language Text
 
-The package includes a public-facing function `compare_sequences_to_human_text` that reproduces cosine similarities such as those in the "Frankenstein" analysis in the AMPLIFY paper. Given a version of the model and a text
-file, it can produce similarity measures between a set of sequences and the text-embedding-average, as in the example below:
+The package includes a public-facing function `compare_sequences_to_human_text` that reproduces cosine similarities such as those in the "Frankenstein" analysis in the AMPLIFY paper. Given a version of the model and a text file, it can produce similarity measures between a set of sequences and the text-embedding-average, as in the example below:
 
 ```
 import amplify
@@ -75,9 +111,101 @@ similarity_measures = amplify.inference.compare_sequences_to_human_text(
 )
 ```
 
+### How to Pre-Train AMPLIFY
+
+AMPLIFY pre-training codebase can be customized to fit different hardware and model configurations. Bellow are two examples.
+
+**Example 1: Pre-training AMPLIFY 350M on a Single Machine with 2 GPUs**
+
+The following command launches the first stage of pre-training AMPLIFY 350M (default configuration) on a machine with 2 GPUs.
+
+```bash
+accelerate launch \
+	--config_file=conf/accelerate_deepspeed_zero3.yaml \
+	--num_processes=2 \
+	--mixed_precision=bf16 \
+	--gradient_clipping=1.0 \
+	main.py \
+	hydra.run.dir=logs/AMPLIFY_350M \
+	wandb.dir=logs/AMPLIFY_350M \
+	wandb.name=AMPLIFY_350M \
+	trainer.dir=logs/AMPLIFY_350M \
+	trainer.train.per_device_batch_size=128 \
+	trainer.validation.per_device_batch_size=128 \
+	trainer.gradient_accumulation_steps=16
+```
+
+**Example 2: Pre-training AMPLIFY 120M on a SLURM Cluster**
+
+The following command launches AMPLIFY 120M pre-training on a SLURM cluster, utilizing 2 nodes with 4 GPUs each. Some arguments have been explicitly specified to their default value to illustrate how they can be changed.
+
+```bash
+#!/bin/bash
+#SBATCH --job-name=AMPLIFY_120M
+#SBATCH --output=%x_output.txt
+#SBATCH --error=%x_error.txt
+#SBATCH --time=0-12:00                  # 12 hours
+#SBATCH --nodes=2                       # number of nodes
+#SBATCH --ntasks-per-node=1             # crucial - only 1 task per node!
+#SBATCH --gpus-per-task=4               # number of gpus per node
+#SBATCH --cpus-per-gpu=8                # number of cpus per node
+#SBATCH --mem=128G                      # memory per node
+#SBATCH --signal=TERM@60                # SIGTERM 60s prior to the allocation's end
+                                        # will trigger a checkpoint
+
+# Get a unique port for this job based on the job ID
+export MASTER_PORT=$(expr 10000 + $(echo -n $SLURM_JOBID | tail -c 4))
+export MASTER_ADDR=$(scontrol show hostnames $SLURM_JOB_NODELIST | head -n 1)
+
+# Maximum number of threads in the OpenMP parallel region (defaults to 1)
+# (called by `torch.distributed.run`, called by `accelerate launch`)
+export OMP_NUM_THREADS=$SLURM_CPUS_PER_GPU
+
+# Activate the virtual environment
+source .venv/bin/activate
+
+# Run the command on each node
+srun \
+	--kill-on-bad-exit=1 \
+	--nodes=$SLURM_JOB_NUM_NODES \
+	--ntasks=$SLURM_JOB_NUM_NODES \
+	--cpus-per-gpu=$SLURM_CPUS_PER_GPU \
+	--gpus-per-task=$SLURM_GPUS_PER_TASK \
+	--ntasks-per-node=1 \
+	bash -c '\
+	accelerate launch \
+	--config_file=conf/accelerate_deepspeed_zero3.yaml \
+	--machine_rank=$SLURM_NODEID \
+	--num_cpu_threads_per_process=$SLURM_CPUS_PER_GPU \
+	--main_process_ip=$MASTER_ADDR \
+	--main_process_port=$MASTER_PORT \
+	--num_processes=$(($SLURM_JOB_NUM_NODES * $SLURM_GPUS_ON_NODE)) \
+	--num_machines=$SLURM_JOB_NUM_NODES \
+	--mixed_precision=bf16 \
+	--gradient_clipping=1.0 \
+	main.py \
+	hydra.run.dir=logs/AMPLIFY_120M \
+	wandb.dir=logs/AMPLIFY_120M \
+	wandb.name=AMPLIFY_120M \
+	model=[amplify,120M] \
+	optimizer=adamw \
+	optimizer.lr=0.001 \
+	optimizer.betas=[0.9,0.95] \
+	optimizer.weight_decay=0.01 \
+	scheduler=cosine_decay \
+	scheduler.warmup_steps=1000 \
+	trainer.dir=logs/AMPLIFY_120M \
+	trainer.max_steps=1000000 \
+	scheduler.final_step=900000 \
+	trainer.train.per_device_batch_size=256 \
+	trainer.validation.per_device_batch_size=256 \
+	trainer.gradient_accumulation_steps=2'
+```
+
 ## Citations
 
 If you find the models useful in your research, we ask that you cite the paper:
+
 ```bibtex
 @article{Fournier2024.09.23.614603,
 	title        = {Protein Language Models: Is Scaling Necessary?},
