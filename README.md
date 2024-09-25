@@ -37,28 +37,28 @@ The top-level page is located at: `docs/build/html/index.html`
 
 ## Datasets and Checkpoints
 
-The datasets and checkpoints are available on [TBA](). Bellow are the links to download individual `.zip` archives.
+The datasets and checkpoints are available on [Zenodo](https://zenodo.org/doi/10.5281/zenodo.13834051). Bellow are the links to download individual `.zip` archives.
 
 ### Datasets
 
 Sequence-only validation sets
 
-- UniProt (reference proteomes): [TBA]()
-- OAS (random split): [TBA]()
-- SCOP (random split): [TBA]()
+- UniProt (reference proteomes): [https://zenodo.org/records/13834052/files/uniprot_dev.fasta.zip](https://zenodo.org/records/13834052/files/uniprot_dev.fasta.zip)
+- OAS (random split): [https://zenodo.org/records/13834052/files/oas_dev.fasta.zip](https://zenodo.org/records/13834052/files/oas_dev.fasta.zip)
+- SCOP (random split): [https://zenodo.org/records/13834052/files/scop_dev.fasta.zip](https://zenodo.org/records/13834052/files/scop_dev.fasta.zip)
 
 Structure validation sets
 
-- CASP14: [TBA]()
-- CASP15: [TBA]()
-- CAMEO: [TBA]()
+- CASP14: [https://zenodo.org/records/13834052/files/casp14.pickle.zip](https://zenodo.org/records/13834052/files/casp14.pickle.zip)
+- CASP15: [https://zenodo.org/records/13834052/files/casp15.pickle.zip](https://zenodo.org/records/13834052/files/casp15.pickle.zip)
+- CAMEO: [https://zenodo.org/records/13834052/files/cameo.pickle.zip](https://zenodo.org/records/13834052/files/cameo.pickle.zip)
 
 Train sets
 
-- UniRef100: [TBA]()
-- UniRef50: [TBA]()
-- OAS: [TBA]()
-- SCOP: [TBA]()
+- UniRef100: [https://zenodo.org/records/13834052/files/uniref100_train.fasta.zip](https://zenodo.org/records/13834052/files/uniref100_train.fasta.zip)
+- UniRef50: [https://zenodo.org/records/13834052/files/uniref50_train.fasta.zip](https://zenodo.org/records/13834052/files/uniref50_train.fasta.zip)
+- OAS: [https://zenodo.org/records/13834052/files/oas_train.fasta.zip](https://zenodo.org/records/13834052/files/oas_train.fasta.zip)
+- SCOP: [https://zenodo.org/records/13834052/files/scop_train.fasta.zip](https://zenodo.org/records/13834052/files/scop_train.fasta.zip)
 
 Note: All datasets were downloaded in December 2023. To ensure compatibility with the codebase, the FASTA files must be converted into CSV format using [`fasta_to_csv.py`](scripts/fasta_to_csv.py).
 
@@ -66,10 +66,10 @@ Note: All datasets were downloaded in December 2023. To ensure compatibility wit
 
 We provide both the final AMPLIFY model checkpoints and intermediate base models (Stage 1, no extension to 2048 tokens).
 
-- AMPLIFY 350M: [TBA]()
-- AMPLIFY 120M: [TBA]()
-- AMPLIFY 350M base: [TBA]()
-- AMPLIFY 120M base: [TBA]()
+- AMPLIFY 350M: [https://zenodo.org/records/13834052/files/AMPLIFY_350M.zip](https://zenodo.org/records/13834052/files/AMPLIFY_350M.zip)
+- AMPLIFY 120M: [https://zenodo.org/records/13834052/files/AMPLIFY_120M.zip](https://zenodo.org/records/13834052/files/AMPLIFY_120M.zip)
+- AMPLIFY 350M base: [https://zenodo.org/records/13834052/files/AMPLIFY_350M_base.zip](https://zenodo.org/records/13834052/files/AMPLIFY_350M_base.zip)
+- AMPLIFY 120M base: [https://zenodo.org/records/13834052/files/AMPLIFY_120M_base.zip](https://zenodo.org/records/13834052/files/AMPLIFY_120M_base.zip)
 
 **Important**: the `config.yaml` specifies a relative path to the vocabulary `vocab_path`. You may need to update this
 path depending on where you run the the scripts that loads the models.
@@ -125,6 +125,7 @@ The following command launches the first stage of pre-training AMPLIFY 350M (def
 
 ```bash
 accelerate launch \
+
 	--config_file=conf/accelerate_deepspeed_zero3.yaml \
 	--num_processes=2 \
 	--mixed_precision=bf16 \
