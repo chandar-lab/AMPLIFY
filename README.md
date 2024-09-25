@@ -111,6 +111,10 @@ similarity_measures = amplify.inference.compare_sequences_to_human_text(
 )
 ```
 
+### How to Reproduce AMPLIFY Data
+
+The instructions to reproduce AMPLIFY's data pipeline are available in [`data-pipeline/README.md`](data-pipeline/README.md).
+
 ### How to Pre-Train AMPLIFY
 
 AMPLIFY pre-training codebase can be customized to fit different hardware and model configurations. Bellow are two examples.
