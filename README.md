@@ -39,7 +39,7 @@ The top-level page is located at: `docs/build/html/index.html`
 
 The datasets and checkpoints are available on [Zenodo](https://zenodo.org/doi/10.5281/zenodo.13834051). Bellow are the links to download individual `.zip` archives.
 
-### Datasets
+### Processed Datasets
 
 Sequence-only validation sets
 
@@ -60,7 +60,7 @@ Train sets
 - OAS: [https://zenodo.org/records/13834052/files/oas_train.fasta.zip](https://zenodo.org/records/13834052/files/oas_train.fasta.zip)
 - SCOP: [https://zenodo.org/records/13834052/files/scop_train.fasta.zip](https://zenodo.org/records/13834052/files/scop_train.fasta.zip)
 
-Note: All datasets were downloaded in December 2023. To ensure compatibility with the codebase, the FASTA files must be converted into CSV format using [`fasta_to_csv.py`](scripts/fasta_to_csv.py).
+Note: All datasets were downloaded in December 2023 and processed following the [`data-pipeline`](data-pipeline/README.md). To ensure compatibility with the codebase, the FASTA files must be converted into CSV format using [`fasta_to_csv.py`](scripts/fasta_to_csv.py).
 
 ### Checkpoints
 
