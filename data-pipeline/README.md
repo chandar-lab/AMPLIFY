@@ -347,7 +347,6 @@ The paired antibody dataset is comprised of individual sets, each from a differe
 
 ```python
 #!/usr/bin/env python
-# Lacks check for ambigious and rare amino acids [BOUXZJ]. Verify afterwards
 import pandas as pd
 import numpy as np
 import re
@@ -355,81 +354,89 @@ import glob
 import subprocess
 import uuid
 
-columns_to_keep2 = ['sequence_id_heavy',
-		'sequence_alignment_aa_heavy',
-		'sequence_id_light',
-		'sequence_alignment_aa_light',
-		'cdr1_aa_heavy',
-		'cdr2_aa_heavy',
-		'cdr3_aa_heavy',
-		'cdr1_aa_light',
-		'cdr2_aa_light',
-		'cdr3_aa_light',
-		]
+##columns with antibody properties to keep
+columns_to_keep = ['sequence_id_heavy',
+        'sequence_alignment_aa_heavy',
+        'sequence_id_light',
+        'sequence_alignment_aa_light',
+        'cdr1_aa_heavy',
+        'cdr2_aa_heavy',
+        'cdr3_aa_heavy',
+        'cdr1_aa_light',
+        'cdr2_aa_light',
+        'cdr3_aa_light',
+        ]
 
-# Function  to concatenate heavy and light chain sequences in both h2l and l2h orientations, and CDR loop sequences only
+##create concatenated l and h chain sequences, or CDR loops only
 def sequence_concats(row):
-	full_h2l = ">" + df['uuid'].astype(str).values + "|" + "A" + "\n" + \
-								df['sequence_alignment_aa_heavy'].astype(str).values + "|" + \
-								df['sequence_alignment_aa_light'].astype(str).values + "\n"
+    full_h2l = ">" + df['uuid'].astype(str).values + "|" + "A" + "\n" + \
+                                df['sequence_alignment_aa_heavy'].astype(str).values + "|" + \
+                                df['sequence_alignment_aa_light'].astype(str).values + "\n"
+                                
+    full_l2h = ">" + df['uuid'].astype(str).values + "|" + "B" + "\n" + \
+                                df['sequence_alignment_aa_light'].astype(str).values + "|" + \
+                                df['sequence_alignment_aa_heavy'].astype(str).values + "\n"
 
-	full_l2h = ">" + df['uuid'].astype(str).values + "|" + "B" + "\n" + \
-								df['sequence_alignment_aa_light'].astype(str).values + "|" + \
-								df['sequence_alignment_aa_heavy'].astype(str).values + "\n"
+    cdr_concat = ">" + df['uuid'].astype(str).values + "|" + "CDRs" + "\n" + \
+                                df['cdr1_aa_heavy'].astype(str).values + "X" + \
+                                df['cdr2_aa_heavy'].astype(str).values + "X" + \
+                                df['cdr3_aa_heavy'].astype(str).values + "XX" + \
+                                df['cdr1_aa_light'].astype(str).values + "X" + \
+                                df['cdr2_aa_light'].astype(str).values + "X" + \
+                                df['cdr3_aa_light'].astype(str).values + "X" + "\n"
+    return full_h2l, full_l2h, cdr_concat
 
-	cdr_concat = ">" + df['uuid'].astype(str).values + "|" + "CDRs" + "\n" + \
-								df['cdr1_aa_heavy'].astype(str).values + "X" + \
-								df['cdr2_aa_heavy'].astype(str).values + "X" + \
-								df['cdr3_aa_heavy'].astype(str).values + "XX" + \
-								df['cdr1_aa_light'].astype(str).values + "X" + \
-								df['cdr2_aa_light'].astype(str).values + "X" + \
-								df['cdr3_aa_light'].astype(str).values + "X" + "\n"
-	return full_h2l, full_l2h, cdr_concat
-
+##export a fasta formatted file
 def fasta_writer(fname, df, outstring):
-	with open(fname, 'w') as f:
-		for index, row in df.iterrows():
-			# print(row['outstring'])
-			f.write(row[outstring])
+    with open(fname, 'w') as f:
+        for index, row in df.iterrows():
+            # print(row['outstring'])
+            f.write(row[outstring])
+
 
 for file in glob.glob('*.csv.gz'):
-	file_root = file.split('.')[0]
-	dfin = pd.read_csv(file, header=1, compression='gzip')
-	##not shorter A *and* not shorter B
-	dfclean = dfin.query("~ANARCI_status_heavy.str.contains('Shorter') \
-							 and ~ANARCI_status_light.str.contains('Shorter')")
-    ##To do: add check for [BOUXZJ]
-	dffiltered = dfclean[columns_to_keep2]
-	df = dffiltered.copy(deep=True)
-	df['file_source'] = str(file_root)
-	df['uuid'] = [uuid.uuid4() for _ in range(len(df.index))]
-# 	df[['full_h2l', 'full_l2h', 'cdr_concat']] =  df.apply(sequence_concats, axis=1)
-	df['full_h2l'] = ">" + df['uuid'].astype(str).values + "|" + "_A" + "\n" + \
-							df['sequence_alignment_aa_heavy'].astype(str).values + "|" + \
-							df['sequence_alignment_aa_light'].astype(str).values + "\n"
+    file_root = file.split('.')[0]
+    dfin = pd.read_csv(file, header=1, compression='gzip')
+    ##not shorter A *and* not shorter B
+    dfclean = dfin.query("~ANARCI_status_heavy.str.contains('Shorter') \
+                             and ~ANARCI_status_light.str.contains('Shorter')")
+    ##remove sequences with rare and ambiguous amino acids in either chain
+    dfclean = dfclean.query("~sequence_alignment_aa_heavy.str.contains('[BOUXZJ]', regex=True) \
+                        and ~sequence_alignment_aa_light.str.contains('[BOUXZJ]', regex=True)")
+    dffiltered = dfclean[columns_to_keep]
+    df = dffiltered.copy(deep=True)
+    df['file_source'] = str(file_root)
+    ##create a unique id across datasets
+    df['uuid'] = [uuid.uuid4() for _ in range(len(df.index))]
+    ##create concatenated h and l sequences, in both orientations, '|' as separator
+    df['full_h2l'] = ">" + df['uuid'].astype(str).values + "|" + "_A" + "\n" + \
+                            df['sequence_alignment_aa_heavy'].astype(str).values + "|" + \
+                            df['sequence_alignment_aa_light'].astype(str).values + "\n"
+                                
+    df['full_l2h'] = ">" + df['uuid'].astype(str).values + "|" + "_B" + "\n" + \
+                                df['sequence_alignment_aa_light'].astype(str).values + "|" + \
+                                df['sequence_alignment_aa_heavy'].astype(str).values + "\n"
+                                
+    ##create a concatenated sequence from all CDRs loops only, X as loop and XX as chain separator
+    df['cdr_concat'] = ">" + df['uuid'].astype(str).values + "|" + "_CDRs" + "\n" + \
+                                df['cdr1_aa_heavy'].astype(str).values + "X" + \
+                                df['cdr2_aa_heavy'].astype(str).values + "X" + \
+                                df['cdr3_aa_heavy'].astype(str).values + "XX" + \
+                                df['cdr1_aa_light'].astype(str).values + "X" + \
+                                df['cdr2_aa_light'].astype(str).values + "X" + \
+                                df['cdr3_aa_light'].astype(str).values + "X" + "\n"
+    
+    ##create a concatenated h + l sequence for use with MMSEQS, XXX as chain separator
+    df['mmseq'] = ">" + df['uuid'].astype(str).values + "|" + "_A" + "\n" + \
+                            df['sequence_alignment_aa_heavy'].astype(str).values + "XXX" + \
+                            df['sequence_alignment_aa_light'].astype(str).values + "\n"
 
-	df['full_l2h'] = ">" + df['uuid'].astype(str).values + "|" + "_B" + "\n" + \
-								df['sequence_alignment_aa_light'].astype(str).values + "|" + \
-								df['sequence_alignment_aa_heavy'].astype(str).values + "\n"
-
-	df['cdr_concat'] = ">" + df['uuid'].astype(str).values + "|" + "_CDRs" + "\n" + \
-								df['cdr1_aa_heavy'].astype(str).values + "X" + \
-								df['cdr2_aa_heavy'].astype(str).values + "X" + \
-								df['cdr3_aa_heavy'].astype(str).values + "XX" + \
-								df['cdr1_aa_light'].astype(str).values + "X" + \
-								df['cdr2_aa_light'].astype(str).values + "X" + \
-								df['cdr3_aa_light'].astype(str).values + "X" + "\n"
-
-	df['mmseq'] = ">" + df['uuid'].astype(str).values + "|" + "_A" + "\n" + \
-							df['sequence_alignment_aa_heavy'].astype(str).values + "XXX" + \
-							df['sequence_alignment_aa_light'].astype(str).values + "\n"
-
-	fout = file_root + "_processed.csv"
-	df.to_csv(fout)
-	fasta_writer(f'{file_root}_full_h2l.fasta', df, 'full_h2l')
-	fasta_writer(f'{file_root}_full_l2h.fasta', df, 'full_l2h')
-	fasta_writer(f'{file_root}_cdr_concat.fasta', df, 'cdr_concat')
-	fasta_writer(f'{file_root}_mmseq.fasta', df, 'mmseq')
+    fout = file_root + "_processed.csv"
+    df.to_csv(fout)
+    fasta_writer(f'{file_root}_full_h2l.fasta', df, 'full_h2l')
+    fasta_writer(f'{file_root}_full_l2h.fasta', df, 'full_l2h')
+    fasta_writer(f'{file_root}_cdr_concat.fasta', df, 'cdr_concat')
+    fasta_writer(f'{file_root}_mmseq.fasta', df, 'mmseq')
 ```
 
 #### Cluster OAS Sequences Using MMseqs2
@@ -468,11 +475,6 @@ clustered_10ksample_id_list = dfclustered.sample(n=10000, random_state=1)['uuid'
 # Create a dataframe of the 10K sampled sequence with all property colums
 df_clustered_full_10k = dfoas_all[dfoas_all['uuid'].isin(clustered_10ksample_id_list)]
 
-# Verify that 10 K sampled sequences do not contain rare or ambigious amino acids (step lacks in oas_file_parser.py)
-df_clustered_full_10k[~df_clustered_full_10k['sequence_alignment_aa_light'].str.contains('[BOUXZJ]', regex=True)]
-df_clustered_full_10k[~df_clustered_full_10k['sequence_alignment_aa_heavy'].str.contains('[BOUXZJ]', regex=True)]
-
-
 # Save the sampled sequences to a CSV file
 df_clustered_full_10k.to_csv('oas_paired_clustered_10ksample_v2.csv')
 
@@ -485,11 +487,6 @@ with open('oas_paired_10k_bothdirections_v2.fa', 'w') as f:
 
 # Create a set of OAS sequences that excludes the sequences in the 10k validation set (used for Train set construction)
 dfoas_all_novalset = dfoas_all[~dfoas_all['uuid'].isin(clustered_10ksample_id_list)]
-
-# Verify that sequences do not contain rare or ambigious amino acids (step lacks in oas_file_parser.py)
-dfoas_all_novalset[dfoas_all_novalset['sequence_alignment_aa_heavy'].str.contains('[BOUXZJ]', regex=True)]
-dfoas_all_novalset[dfoas_all_novalset['sequence_alignment_aa_light'].str.contains('[BOUXZJ]', regex=True)]
-
 ```
 
 ### Filter Validation Sets
