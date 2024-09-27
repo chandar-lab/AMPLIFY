@@ -2,6 +2,36 @@ import torch
 from typing import List
 from torch import Tensor
 
+vocab_ll = [
+    "<pad>",
+    "<unk>",
+    "<mask>",
+    "<bos>",
+    "<eos>",
+    "|",
+    "L",
+    "A",
+    "G",
+    "V",
+    "S",
+    "E",
+    "R",
+    "T",
+    "I",
+    "D",
+    "P",
+    "K",
+    "Q",
+    "N",
+    "F",
+    "Y",
+    "M",
+    "H",
+    "W",
+    "C",
+    "B",
+]
+
 
 class ProteinTokenizer(object):
     def __init__(
@@ -29,11 +59,10 @@ class ProteinTokenizer(object):
         self._token_to_id = dict()
         self._id_to_token = dict()
 
-        with open(vocab_path, "r") as vocab_file:
-            for i, token in enumerate(vocab_file):
-                token = token.strip()
-                self._token_to_id[token] = i
-                self._id_to_token[i] = token
+        for i, token in enumerate(vocab_ll):
+            token = token.strip()
+            self._token_to_id[token] = i
+            self._id_to_token[i] = token
 
         # Padding token
         self.pad_token_id = pad_token_id
