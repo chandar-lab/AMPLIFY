@@ -1,3 +1,5 @@
+import re
+
 import torch
 from typing import List
 from torch import Tensor
@@ -32,6 +34,16 @@ vocab_ll = [
     "B",
 ]
 
+def split_sequence(sequence: str):
+    pattern = r'(<[^>]+>|[^<]+)'
+    tokens = re.findall(pattern, sequence)
+    result = []
+    for token in tokens:
+        if token.startswith('<') and token.endswith('>'):
+            result.append(token)
+        else:
+            result.extend(list(token))
+    return result
 
 class ProteinTokenizer(object):
     def __init__(
@@ -103,7 +115,7 @@ class ProteinTokenizer(object):
 
     def encode(
         self,
-        tokens: List[str],
+        tokens: List[str] | str,
         max_length: int | None = None,
         add_special_tokens: bool = True,
         random_truncate: bool = True,
@@ -121,6 +133,8 @@ class ProteinTokenizer(object):
         Returns:
             List | Tensor: Token indices.
         """
+        if isinstance(tokens, str):
+            tokens = split_sequence(tokens)
         token_ids = list(map(self.token_to_id, tokens))
         if add_special_tokens:
             token_ids = [self.bos_token_id] + token_ids + [self.eos_token_id]
