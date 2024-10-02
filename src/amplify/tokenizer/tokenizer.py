@@ -1,5 +1,5 @@
 import torch
-from typing import List
+from typing import List, Optional, Union
 from torch import Tensor
 
 
@@ -12,7 +12,7 @@ class ProteinTokenizer(object):
         bos_token_id: int,
         eos_token_id: int,
         unk_token_id: int,
-        other_special_token_ids: list | None,
+        other_special_token_ids: Optional[List[int]],
         **kwargs,
     ):
         """Vocabulary comprising the amino acids, and the special tokens <unk>, <bos>, <eos>, <pad> and <mask>.
@@ -24,7 +24,7 @@ class ProteinTokenizer(object):
             bos_token_id (int): <BOS> token index.
             eos_token_id (int): <EOS> token index.
             unk_token_id (int): <UNK> token index.
-            other_special_token_Unknown ids (list | None): List of additional special tokens.
+            other_special_token_ids (Optional[List[int]]): List of additional special tokens.
         """
         self._token_to_id = dict()
         self._id_to_token = dict()
@@ -61,7 +61,7 @@ class ProteinTokenizer(object):
         self.special_token_ids.add(eos_token_id)
         self.special_token_ids.add(unk_token_id)
         if other_special_token_ids is not None:
-            self.special_token_ids.add(other_special_token_ids)
+            self.special_token_ids.update(other_special_token_ids)
 
     def __len__(self) -> int:
         return len(self._token_to_id)
@@ -75,28 +75,31 @@ class ProteinTokenizer(object):
     def encode(
         self,
         tokens: List[str],
-        max_length: int | None = None,
+        max_length: Optional[int] = None,
         add_special_tokens: bool = True,
         random_truncate: bool = True,
         **kwargs,
-    ) -> List | Tensor:
+    ) -> Union[List[int], Tensor]:
         """Encodes a list of tokens into a list or tensor of token indices.
 
         Args:
             tokens (List[str]): Sequence of tokens to encode.
-            max_length (int | None, optional): Truncate the sequence to the specified length. Defaults to None.
+            max_length (Optional[int], optional): Truncate the sequence to the specified length. Defaults to None.
             add_special_tokens (bool, optional): Add special tokens <bos> and <eos> at the start and end.. Defaults to True.
             random_truncate (bool, optional): Truncate the sequence to a random subsequence of if longer than truncate.
             Defaults to True.
 
         Returns:
-            List | Tensor: Token indices.
+            Union[List[int], Tensor]: Token indices.
         """
         token_ids = list(map(self.token_to_id, tokens))
         if add_special_tokens:
             token_ids = [self.bos_token_id] + token_ids + [self.eos_token_id]
         if max_length is not None and max_length < len(token_ids):
-            offset = int(torch.randint(0, len(token_ids) - max_length, (1,))) if random_truncate else 0
+            if random_truncate:
+                offset = int(torch.randint(0, len(token_ids) - max_length, (1,)).item())
+            else:
+                offset = 0
             token_ids = token_ids[offset : offset + max_length]
         return torch.as_tensor(token_ids, dtype=torch.long)
 
@@ -105,7 +108,7 @@ class ProteinTokenizer(object):
         token_ids: List[int],
         skip_special_tokens: bool = True,
         **kwargs,
-    ) -> List | str:
+    ) -> Union[List[str], str]:
         """Decodes a list or tensor of token ids into a list or string of tokens.
 
         Args:
@@ -114,14 +117,16 @@ class ProteinTokenizer(object):
             Defaults to True.
 
         Returns:
-            List | str: Protein.
+            Union[List[str], str]: Protein.
         """
         if torch.is_tensor(token_ids):
             token_ids = token_ids.tolist()
 
         if skip_special_tokens:
-            token_ids = token_ids[1:] if token_ids[1] in self.special_token_ids else token_ids
-            token_ids = token_ids[:-1] if token_ids[-1] in self.special_token_ids else token_ids
+            if len(token_ids) > 0 and token_ids[0] in self.special_token_ids:
+                token_ids = token_ids[1:]
+            if len(token_ids) > 0 and token_ids[-1] in self.special_token_ids:
+                token_ids = token_ids[:-1]
 
         tokens = " ".join(map(self.id_to_token, token_ids))
 
