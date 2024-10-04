@@ -100,27 +100,34 @@ class EncoderBlock(nn.Module):
         self.resid_dropout = nn.Dropout(config.dropout_prob)
 
         # Feedforward network
-        match config.hidden_act.lower():
-            case "swiglu":
-                # To keep the number of parameters and the amount of computation constant, we reduce the number of
-                # hidden units by a factor of 2/3 (https://arxiv.org/pdf/2002.05202.pdf) and make it a multiple of 8 to
-                # avoid RuntimeError due to misaligned operand
-                multiple_of = 8
-                intermediate_size = int(2 * config.intermediate_size / 3)
-                intermediate_size = multiple_of * ((intermediate_size + multiple_of - 1) // multiple_of)
-                self.ffn = SwiGLU(config.hidden_size, intermediate_size, config.hidden_size, bias=config.ffn_bias)
-            case "relu":
-                self.ffn = nn.Sequential(
-                    nn.Linear(config.hidden_size, config.intermediate_size, bias=config.ffn_bias),
-                    nn.ReLU(),
-                    nn.Linear(config.intermediate_size, config.hidden_size, bias=config.ffn_bias),
-                )
-            case "gelu":
-                self.ffn = nn.Sequential(
-                    nn.Linear(config.hidden_size, config.intermediate_size, bias=config.ffn_bias),
-                    nn.GELU(),
-                    nn.Linear(config.intermediate_size, config.hidden_size, bias=config.ffn_bias),
-                )
+        act = config.hidden_act.lower()
+        if act == "swiglu":
+            # To keep the number of parameters and the amount of computation constant, we reduce the number of
+            # hidden units by a factor of 2/3 (https://arxiv.org/pdf/2002.05202.pdf) and make it a multiple of 8 to
+            # avoid RuntimeError due to misaligned operand
+            multiple_of = 8
+            intermediate_size = int(2 * config.intermediate_size / 3)
+            intermediate_size = multiple_of * ((intermediate_size + multiple_of - 1) // multiple_of)
+            self.ffn = SwiGLU(
+                config.hidden_size,
+                intermediate_size,
+                config.hidden_size,
+                bias=config.ffn_bias
+            )
+        elif act == "relu":
+            self.ffn = nn.Sequential(
+                nn.Linear(config.hidden_size, config.intermediate_size, bias=config.ffn_bias),
+                nn.ReLU(),
+                nn.Linear(config.intermediate_size, config.hidden_size, bias=config.ffn_bias),
+            )
+        elif act == "gelu":
+            self.ffn = nn.Sequential(
+                nn.Linear(config.hidden_size, config.intermediate_size, bias=config.ffn_bias),
+                nn.GELU(),
+                nn.Linear(config.intermediate_size, config.hidden_size, bias=config.ffn_bias),
+            )
+        else:
+            raise ValueError(f"Unsupported hidden_act: {config.hidden_act}")
 
         self.attention_norm = RMSNorm(config.hidden_size, config.norm_eps) if config.rms_norm else nn.LayerNorm(config.hidden_size, config.norm_eps)
         self.ffn_norm = RMSNorm(config.hidden_size, config.norm_eps) if config.rms_norm else nn.LayerNorm(config.hidden_size, config.norm_eps)
