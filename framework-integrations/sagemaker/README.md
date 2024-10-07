@@ -23,6 +23,7 @@ Amazon SageMaker is a fully managed machine learning service that provides every
 
 ![alt text](./img/training.png)
 
+
 ### 1. **Training Architecture**
 - SageMaker Notebook is used to initiate the training job with necessary configurations such as instance type (CPU/GPU), training script, and hyperparameters.
 - Based on the configurations provided in the SageMaker notebook, SageMaker dynamically provisions the cluster, including the necessary computing resources (CPU or GPU instances).
@@ -31,6 +32,7 @@ Amazon SageMaker is a fully managed machine learning service that provides every
 - After training is complete, the resulting model artifacts (including the trained model and any generated checkpoints) are stored back in Amazon S3 for deployment.
 
 ![alt text](./img/Inference.png)
+
 
 ### 2. **Inference Architecture**
 - The trained model is deployed to a SageMaker endpoint for real-time inference, supporting both custom-trained models and models directly from the Hugging Face Hub.
