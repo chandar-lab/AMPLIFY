@@ -1,0 +1,7 @@
+train:
+  samples_before_next_set: [15134,136,1]
+  paths: {uniref100: uniref/mila/uniref100_train.csv, pdb: uniref/mila/pdb_train.csv, oas: uniref/mila/oas_train.csv}
+
+validation:
+  samples_before_next_set: null
+  paths: {uniprot: uniref/mila/uniprot_dev.csv, pdb: uniref/mila/pdb_dev.csv, oas: uniref/mila/oas_dev.csv}

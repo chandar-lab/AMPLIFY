@@ -1,0 +1,12 @@
+_name_: ESM
+dropout_prob: 0
+embedding_init_range: 0.02
+decoder_init_range: 0.02
+norm_eps: 1e-05 
+hidden_act: GELU # "ReLU" / "GELU" / "SwiGLU"
+layer_norm_after_embedding: False
+layer_norm_before_last_layer: True
+rms_norm: False
+ffn_bias: True
+att_bias: True
+ 
