@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+
+**/dummy-model/
+**/dummy-model.tar.gz
 # C extensions
 *.so
 
