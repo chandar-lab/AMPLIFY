@@ -1,2 +1,2 @@
 git+https://github.com/chandar-lab/AMPLIFY.git
-hydra-core
+hydra-core==1.3.2

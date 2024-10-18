@@ -20,8 +20,8 @@ def model_fn(model_dir):
         for name in files:
             print(f"File: {os.path.join(root, name)}")
 
-    amplify_model_path = "/opt/ml/model/AMPLIFY_120M/pytorch_model.pt"
-    config_path = "/opt/ml/model/code/config.yaml"
+    amplify_model_path = f"{model_dir}/opt/ml/model/model.safetensors"
+    config_path = "/opt/ml/model/code/conf/config.yaml"
     
     model, tokenizer = amplify.AMPLIFY.load(amplify_model_path, config_path)
     
