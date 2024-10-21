@@ -42,19 +42,16 @@ def evaluate(
     model.train()
     return num_val_pred, sum_val_loss, num_val_correct
 
+
 def save_model(model, cfg):
     """
-    Saves the trained model to the specified directory.
+    Saves the trained model, toketnizer details and vocab to the specified directory.
     """
     model_dir = os.getenv("SM_MODEL_DIR", "/opt/ml/model")
     os.makedirs(model_dir, exist_ok=True)  # Create the directory if it doesn't exist
     model.save_pretrained(model_dir)  # Save in Hugging Face's compatible format
     print(f"Model successfully saved to {model_dir}")
-    
-    config_path = os.path.join(model_dir, "config.yaml")
-    with open(config_path, "w") as f:
-        yaml.dump(OmegaConf.to_container(cfg, resolve=True), f) 
-        print(f"Config successfully saved to {config_path}")
+
 
 def trainer(cfg: DictConfig) -> None:
     """Main training loop for the model."""

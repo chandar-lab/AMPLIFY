@@ -1,4 +1,3 @@
-seed: 0
 tokenizer:
   vocab_path: /opt/ml/model/code/conf/tokenizer/amplify_vocab.txt
   vocab_size: 27
