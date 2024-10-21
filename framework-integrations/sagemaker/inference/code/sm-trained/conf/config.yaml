@@ -1,0 +1,24 @@
+tokenizer:
+  vocab_path: /opt/ml/model/code/conf/tokenizer/amplify_vocab.txt
+  vocab_size: 27
+  pad_token_id: 0
+  mask_token_id: 2
+  bos_token_id: 3
+  eos_token_id: 4
+  unk_token_id: 1
+  other_special_token_ids: null
+model:
+  _name_: AMPLIFY
+  dropout_prob: 0
+  embedding_init_range: 0.02
+  decoder_init_range: 0.02
+  norm_eps: 1.0e-05
+  hidden_act: SwiGLU
+  pre_activation_layer_norm: true
+  layer_norm_after_embedding: false
+  layer_norm_before_last_layer: true
+  rms_norm: true
+  hidden_size: 640
+  num_hidden_layers: 24
+  num_attention_heads: 10
+  intermediate_size: 2560

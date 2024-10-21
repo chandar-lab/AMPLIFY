@@ -1,0 +1,8 @@
+train:
+  samples_before_next_set: null
+  paths: {uniref50: /opt/ml/input/data/train/uniref50_sample_100.csv}
+
+
+validation:
+  samples_before_next_set: null
+  paths: {uniprot: /opt/ml/input/data/train/uniref50_sample_100.csv}
