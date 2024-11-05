@@ -31,7 +31,7 @@ def test__quickstart_example__executes_as_expected():
     as portrayed in the docs.
     """
 
-    device = torch.device("cuda:0")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     model, tokenizer = amplify.AMPLIFY.load(checkpoint_file, config_path)
     predictor = amplify.inference.Predictor(model, tokenizer, device=device)

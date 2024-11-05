@@ -24,8 +24,7 @@ reference_model, reference_tokenizer = load_model(
     reference_model_checkpoint_path, reference_model_config_path
 )
 
-device = f"cuda:{torch.cuda.current_device()}"
-
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def test__embedder__creates_reproducible_embeddings():
     """
