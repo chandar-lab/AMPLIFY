@@ -24,7 +24,6 @@ reference_model, reference_tokenizer = load_model(
     reference_model_checkpoint_path, reference_model_config_path
 )
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def test__embedder__creates_reproducible_embeddings():
     """
@@ -47,10 +46,9 @@ def test__embedder__creates_reproducible_embeddings():
         for _ in range(datapoint_count):
             sequences.append(next(reader)[1])
 
-    model.to(device)
     embeddings = list()
 
-    embedder = Embedder(model, tokenizer, device=device)
+    embedder = Embedder(model, tokenizer)
     for sequence in sequences:
         embedding = embedder.embed(sequence)
         embeddings.append(embedding.tolist())
@@ -135,7 +133,7 @@ def test__cosine_similarities__agrees_with_values_produced_by_a_naive_implementa
 def test__dump__dumps_the_computed_embeddings_to_a_pickle(temporary_file_path):
 
     model, tokenizer = (reference_model.eval(), reference_tokenizer)
-    embedder = Embedder(model, tokenizer, device=device)
+    embedder = Embedder(model, tokenizer)
 
     sequence_file_path = os.path.join(this_dir, "example-data/easy-task-val.csv")
     with open(sequence_file_path, "r") as data_source:
@@ -169,7 +167,7 @@ def test__load__reproduces_the_results_of_self_dot_dump_given_a_filepath(
 ):
 
     model, tokenizer = (reference_model.eval(), reference_tokenizer)
-    embedder = Embedder(model, tokenizer, device=device)
+    embedder = Embedder(model, tokenizer)
 
     sequence_file_path = os.path.join(this_dir, "example-data/easy-task-val.csv")
     with open(sequence_file_path, "r") as data_source:
@@ -201,7 +199,7 @@ def test__load__reproduces_the_results_of_self_dot_dump_given_an_io_object(
 ):
 
     model, tokenizer = (reference_model.eval(), reference_tokenizer)
-    embedder = Embedder(model, tokenizer, device=device)
+    embedder = Embedder(model, tokenizer)
 
     sequence_file_path = os.path.join(this_dir, "example-data/easy-task-val.csv")
     with open(sequence_file_path, "r") as data_source:
