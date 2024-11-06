@@ -31,13 +31,11 @@ def test__quickstart_example__executes_as_expected():
     as portrayed in the docs.
     """
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
     model, tokenizer = amplify.AMPLIFY.load(checkpoint_file, config_path)
-    predictor = amplify.inference.Predictor(model, tokenizer, device=device)
+    predictor = amplify.inference.Predictor(model, tokenizer)
 
     sequence = "ACGGGVWVSDDA"
-    logits = predictor.logits(sequence)
+    logits = predictor.logits(sequence).cpu()
 
     expected_logits = torch.tensor(
         [
@@ -268,7 +266,7 @@ def test__quickstart_example__executes_as_expected():
                 ],
             ]
         ]
-    ).to(device)
+    )
 
     assert (logits - expected_logits).abs().max() < 1e-4
 

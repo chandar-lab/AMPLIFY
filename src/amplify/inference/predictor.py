@@ -4,7 +4,7 @@ from .embeddings import Embedder
 
 
 class Predictor:
-    def __init__(self, model, tokenizer, device=torch.device("cuda:0")):
+    def __init__(self, model, tokenizer, device=torch.device("cuda" if torch.cuda.is_available() else "cpu")):
         """
         Bind a given model and tokenizer to a basic inference API, for simplified calls.
 
