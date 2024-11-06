@@ -47,9 +47,6 @@ def get_loss(
         other_special_token_ids,
     )
 
-    # Label smoothing
-    label_smoothing = label_smoothing
-
     # Class weights
     class_weights = None
     if weights is not None and any(w != 1 for w in weights.values()):
