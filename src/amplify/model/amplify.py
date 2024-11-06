@@ -254,10 +254,9 @@ class AMPLIFY(AMPLIFYPreTrainedModel):
         hidden_states, attentions = [], []
 
         # Expand and repeat: (Batch, Length) -> (Batch, Heads, Length, Length)
-        if pad_mask is not None and not torch.all(pad_mask == 0):
+        if pad_mask is not None:
+            assert pad_mask.dtype != torch.bool and 1.0 not in pad_mask, "AMPLIFY expects an additive pad_mask"
             pad_mask = pad_mask.unsqueeze(1).unsqueeze(1).repeat(1, self.config.num_attention_heads, pad_mask.size(-1), 1)
-        else:
-            pad_mask = None
 
         # RoPE
         self.freqs_cis = self.freqs_cis.to(src.device, non_blocking=True)
