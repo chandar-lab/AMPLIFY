@@ -5,7 +5,7 @@ import torch
 
 
 class Embedder:
-    def __init__(self, model, tokenizer, device=torch.device("cuda:0")):
+    def __init__(self, model, tokenizer, device=torch.device("cuda" if torch.cuda.is_available() else "cpu")):
         self._model = model
         self._tokenizer = tokenizer
         self.device = device
