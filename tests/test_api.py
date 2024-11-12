@@ -4195,12 +4195,18 @@ def test__compare_sequences_to_out_of_sample__executes_as_expected():
         for _ in range(target_count):
             target_sequences.append(next(reader0)[1])
 
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
+
     model, tokenizer = amplify.AMPLIFY.load(checkpoint_file, config_path)
     easy_regex_result = amplify.inference.compare_sequences_to_out_of_sample_average(
         tokenizer=tokenizer,
         model=model,
         out_of_sample_sequences=out_of_sample_sequences,
         target_sequences=target_sequences,
+        device=device,
     )
 
     assert target_count == len(easy_regex_result)
