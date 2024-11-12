@@ -55,7 +55,7 @@ class Embedder:
             )
 
         result = embeddings.hidden_states[-1]
-        return result[0][1:-1, :].cpu().numpy()
+        return torch.nn.functional.normalize(result[0][1:-1, :].half().cpu(), p=2, dim=1)
 
     def dump(self, sequences, out_path="embeddings.pkl", **kwargs):
         """
