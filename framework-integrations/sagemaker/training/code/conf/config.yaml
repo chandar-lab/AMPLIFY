@@ -1,0 +1,19 @@
+# The Defaults List is a list in an input config that instructs Hydra how to build the output config.
+defaults:
+  - _self_
+  - dataset: uniref50
+  - tokenizer: amplify_tokenizer
+  - model: 
+    - amplify
+    - 120M
+  - optimizer: adamw
+  - scheduler: cosine_decay
+  - trainer:
+    - base
+    - mlm
+    
+seed: 0
+
+hydra:
+  run:
+    dir: outputs/${now:%Y-%m-%d-%H-%M-%S}/hydra

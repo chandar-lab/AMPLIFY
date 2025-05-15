@@ -1,0 +1,166 @@
+seed: 0
+wandb:
+  name: PLM_350M
+  project: Protein Language Model
+  entity: protein-language-model
+  tags:
+  - PLM
+  - 350M
+  - Mila
+  dir: tests/outputs/unit-test-c3f5e09a-fe5c-4bfc-8252-1fea9839b46b/wandb
+  mode: offline
+  log_interval: 5
+dataset:
+  train:
+    paths:
+      example-train: tests/example-data/easy-task-train.csv
+    samples_before_next_set:
+    - 100
+  validation:
+    paths:
+      example-validation: tests/example-data/easy-task-val.csv
+    samples_before_next_set:
+    - 10
+tokenizer:
+  vocab_path: tests/example-data/easy-vocab.txt
+  vocab_size: 26
+  max_length: 31
+  pad_token_id: 0
+  mask_token_id: 2
+  bos_token_id: 3
+  eos_token_id: 4
+  unk_token_id: 1
+  other_special_token_ids: null
+model:
+  _name_: PLM
+  dropout_prob: 0
+  decoder_init_range: 0.02
+  embedding_init_range: 0.02
+  ffn_bias: true
+  att_bias: false
+  norm_eps: 1.0e-05
+  hidden_act: SwiGLU
+  pre_activation_layer_norm: true
+  layer_norm_after_embedding: false
+  layer_norm_before_last_layer: true
+  rms_norm: true
+  hidden_size: 320
+  num_hidden_layers: 6
+  num_attention_heads: 20
+  intermediate_size: 1280
+optimizer:
+  _name_: AdamW
+  lr: 0.001
+  betas:
+  - 0.9
+  - 0.95
+  eps: 1.0e-08
+  weight_decay: 0.01
+scheduler:
+  _name_: CosineDecay
+  final_ratio: 0.1
+  final_step: 900000
+  warmup_steps: 1000
+trainer:
+  dir: tests/outputs/unit-test-c3f5e09a-fe5c-4bfc-8252-1fea9839b46b
+  resume: true
+  max_steps: 1000
+  max_checkpoints: 10
+  eval_steps: 5
+  save_steps: 50
+  gradient_clipping: null
+  gradient_accumulation_steps: 4
+  tf32: true
+  disable_tqdm: false
+  _name_: MLM
+  train:
+    max_tokens: 512
+    padding: max_length
+    pad_to_multiple_of: 8
+    random_truncate: true
+    mask_probability: 0.15
+    num_workers: 1
+    per_device_batch_size: 128
+    label_smoothing: 0
+    weights:
+      L: 1
+      A: 1
+      G: 1
+      V: 1
+      S: 1
+      E: 1
+      R: 1
+      T: 1
+      I: 1
+      D: 1
+      P: 1
+      K: 1
+      Q: 1
+      'N': 1
+      F: 1
+      'Y': 1
+      M: 1
+      H: 1
+      W: 1
+      C: 1
+    exclude_special_tokens_replacement: false
+  validation:
+    max_tokens: 512
+    padding: max_length
+    pad_to_multiple_of: 8
+    random_truncate: true
+    mask_probability: 0.15
+    num_workers: 1
+    per_device_batch_size: 128
+    label_smoothing: 0
+    weights:
+      L: 1
+      A: 1
+      G: 1
+      V: 1
+      S: 1
+      E: 1
+      R: 1
+      T: 1
+      I: 1
+      D: 1
+      P: 1
+      K: 1
+      Q: 1
+      'N': 1
+      F: 1
+      'Y': 1
+      M: 1
+      H: 1
+      W: 1
+      C: 1
+    exclude_special_tokens_replacement: false
+analysis:
+  device: 0
+  from_checkpoint: null
+  dataloader:
+    paths: uniref/validation.csv
+    max_tokens: 1024
+    padding: longest
+    pad_to_multiple_of: 8
+    random_truncate: false
+    num_workers: 1
+    per_device_batch_size: 64
+  umap_embedding_matrix:
+    n_neighbors: 20
+    min_dist: 0.1
+    n_epochs: 2000
+    low_memory: false
+  umap_proteins:
+    num_proteins: 10000
+    n_neighbors: 500
+    min_dist: 0.1
+    n_epochs: 2000
+    low_memory: false
+  mc_dropout:
+    num_proteins: 5
+    num_steps: 500
+  integrated_gradient:
+    num_proteins: 5
+    num_steps: 2000
+    batch_size: 32
