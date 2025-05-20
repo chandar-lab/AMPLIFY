@@ -1,0 +1,2 @@
+defaults:
+  - experiments: esm2_t30_150M_UR50D
