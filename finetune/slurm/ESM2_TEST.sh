@@ -1,0 +1,8 @@
+ft_model_paths=("None" "esm2_t33_650M_UR50D_esm2_t30_150M_UR50D_None_1_0.5_0.5_loss_large_1.0_aido_gearnet_1_1_0.5_0.5_loss_large_0.8_aido_gearnet_1" "esm2_t33_650M_UR50D_esm2_t30_150M_UR50D_None_1_0.5_0.5_loss_large_1.0_foldseek_af2_1_1_0.5_0.5_loss_large_0.8_foldseek_af2_1" "esm2_t33_650M_UR50D_esm2_t30_150M_UR50D_None_1_0.5_0.5_loss_large_1.0_foldseek_gearnet_1_1_0.0_0.0_loss_large_0.8_foldseek_gearnet_1" "esm2_t33_650M_UR50D_esm2_t30_150M_UR50D_None_1_0.5_0.5_loss_large_1.0_foldseek_gearnet_1_1_0.0_0.5_loss_large_0.8_foldseek_gearnet_1" "esm2_t33_650M_UR50D_esm2_t30_150M_UR50D_None_1_0.5_0.5_loss_large_1.0_foldseek_gearnet_1_1_0.5_0.0_loss_large_0.8_foldseek_gearnet_1" "esm2_t33_650M_UR50D_esm2_t30_150M_UR50D_None_1_0.5_0.5_loss_large_1.0_foldseek_gearnet_1_1_0.5_0.5_loss_large_0.8_foldseek_gearnet_1" "esm2_t33_650M_UR50D_esm2_t30_150M_UR50D_None_1_0.5_0.5_loss_large_1.0_foldseek_gearnet_1_1_0.5_0.5_loss_large_0.8_foldseek_gearnet_2" "esm2_t33_650M_UR50D_esm2_t30_150M_UR50D_None_1_0.5_0.5_loss_large_1.0_foldseek_gearnet_1_1_0.5_0.5_loss_large_0.8_foldseek_gearnet_3" "esm2_t33_650M_UR50D_esm2_t30_150M_UR50D_None_1_0.5_0.5_loss_large_1.0_protoken_gearnet_1_1_0.5_0.5_loss_large_0.8_protoken_gearnet_1" "esm2_t33_650M_UR50D_None_1_0.5_0.5_loss_large_0.8_foldseek_gearnet_1" "esm2_t33_650M_UR50D_None_1_0.5_0.5_loss_large_1.0_foldseek_gearnet_1" "esm2_t33_650M_UR50D_None_1_0.5_0.5_loss_small_0.8_foldseek_gearnet_1")
+
+for ft_model_path in "${ft_model_paths[@]}"; do
+    python -u main.py \
+        experiments=ESM2_TEST \
+        experiments.ft_model_path="$ft_model_path"\
+        experiments.device=0
+done

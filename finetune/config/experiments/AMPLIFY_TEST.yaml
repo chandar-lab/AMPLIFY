@@ -1,0 +1,15 @@
+seed: 42
+
+mode: downstream
+task_names: ["saprot_data/HumanPPI", "saprot_data/MetalIonBinding_AF2", "saprot_data/Thermostability", "saprot_data/GO_AF2_MF", "saprot_data/GO_AF2_CC", "saprot_data/GO_AF2_BP", "saprot_data/EC_AF2", "saprot_data/DeepLoc_cls10", 'Bo1015/ssp_q3', 'Bo1015/fold_prediction', 'Bo1015/contact_prediction_binary', 'Bo1015/enzyme_catalytic_efficiency', 'Bo1015/fitness_prediction', 'Bo1015/fluorescence_prediction', 'Bo1015/stability_prediction']
+
+prt_model_name: chandar-lab/AMPLIFY_350M
+ft_model_path: null
+
+
+n_epochs: 200
+batch_size: 8
+opt_interval: 16 # 8 * 16 = 128
+precision: 'bf16'
+
+device: 0

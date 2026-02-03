@@ -1,0 +1,27 @@
+seed: 1
+
+mode: train
+prt_model_name: chandar-lab/AMPLIFY_120M
+loss_weight: [1, 0.5, 0.5]
+struc_token_type: foldseek
+struc_embed_type: gearnet
+
+reference_model: null
+reference_prt_model_name: null
+
+train_data_type: valid_train
+valid_data_type: valid_valid
+sample_mode: loss_large
+ratio: 1.0
+
+n_epochs: 200
+batch_size: 8
+opt_interval: 64 # 8 * 8 * 64 = 4096
+eval_steps: 15
+precision: bf16
+
+prefix_path: /network/scratch/c/can.chen/datasets/pdb_data
+# prefix_path has three folders: 1. important_data to save key_name related; 2. af2_embedding; 3. gearnet_embedding
+
+save_steps: 15
+resume: True
