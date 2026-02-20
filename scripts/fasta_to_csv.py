@@ -19,7 +19,7 @@ if __name__ == "__main__":
             if len(name) > 0 and len(seq) > 0:
                 writer.write(f"{name},{seq}\n")
                 name, seq = str(), str()
-            name = row.strip().replace(",", "|")
+            name = row[1:].strip().replace(",", "|")
         else:
             seq += row.strip()
     if len(name) > 0 and len(seq) > 0:

@@ -1,5 +1,0 @@
-_name_: CosineDecayWarmRestart
-final_ratio: 0.1
-final_step: 900000
-warm_restart_steps: 100000
-warmup_steps: 1000

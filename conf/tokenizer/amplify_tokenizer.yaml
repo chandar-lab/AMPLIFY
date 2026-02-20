@@ -1,8 +1,10 @@
 vocab_path: "conf/tokenizer/amplify_vocab.txt"
-vocab_size: 27
+vocab_size: 32
 pad_token_id: 0
+unk_token_id: 1
 mask_token_id: 2
 bos_token_id: 3
 eos_token_id: 4
-unk_token_id: 1
 other_special_token_ids: null
+ambiguous_token_ids: [1,6,7,8,9,10,11]
+remove_ambiguous: true

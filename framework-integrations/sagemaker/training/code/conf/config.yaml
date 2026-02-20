@@ -16,4 +16,4 @@ seed: 0
 
 hydra:
   run:
-    dir: outputs/${now:%Y-%m-%d-%H-%M-%S}/hydra
+    dir: logs/${now:%Y-%m-%d-%H-%M-%S}/hydra

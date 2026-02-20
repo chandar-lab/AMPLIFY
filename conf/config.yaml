@@ -1,7 +1,8 @@
 # The Defaults List is a list in an input config that instructs Hydra how to build the output config.
 defaults:
   - _self_
-  - dataset: uniref100+
+  - dataset: uniref100
+  - dataloader: base
   - tokenizer: amplify_tokenizer
   - model: 
     - amplify
@@ -20,9 +21,9 @@ hydra:
 
 wandb:
   name: null
-  project: protein-scorer
-  entity: drug-discovery
+  project: amplify
+  entity: drug-discovery-amgen
   tags: []
   dir: outputs/${now:%Y-%m-%d-%H-%M-%S}/wandb
-  mode: online
+  mode: disabled
   log_interval: 100

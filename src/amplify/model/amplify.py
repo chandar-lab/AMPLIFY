@@ -2,19 +2,21 @@
 # From https://github.com/pytorch/pytorch/issues/97899
 # From https://github.com/facebookresearch/llama/blob/main/llama/model.py
 import yaml
+import os
 
 import safetensors
 import torch
 from torch import nn
-from torch.nn.functional import scaled_dot_product_attention
-from xformers.ops import SwiGLU, memory_efficient_attention
 
-from .rmsnorm import RMSNorm
-from .rotary import precompute_freqs_cis, apply_rotary_emb
-from ..tokenizer import ProteinTokenizer
+from torch.nn.functional import scaled_dot_product_attention
+from deepspeed.utils.zero_to_fp32 import get_fp32_state_dict_from_zero_checkpoint
 
 from transformers import PreTrainedModel, PretrainedConfig
 from transformers.modeling_outputs import MaskedLMOutput
+
+from .rotary import precompute_freqs_cis, apply_rotary_emb
+from .tokenizer import ProteinTokenizer
+
 
 class DotDict(dict):
     """Dictionary that supports the dot notation to access attributes (similarly to HuggingFace)."""
@@ -23,8 +25,10 @@ class DotDict(dict):
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
 
+
 class AMPLIFYConfig(PretrainedConfig):
     model_type = "AMPLIFY"
+
     # All config parameters must have a default value.
     def __init__(
         self,
@@ -32,41 +36,31 @@ class AMPLIFYConfig(PretrainedConfig):
         num_hidden_layers: int = 32,
         num_attention_heads: int = 15,
         intermediate_size: int = 3840,
-        dropout_prob: float = 0,
         embedding_init_range: float = 0.02,
         decoder_init_range: float = 0.02,
-        rms_norm: bool = True,
         norm_eps: float = 1e-05,
-        hidden_act: str = "SwiGLU",
-        layer_norm_after_embedding: bool = False,
-        layer_norm_before_last_layer: bool = True,
-        vocab_size: int = 27,
-        ffn_bias: bool = False,
-        att_bias: bool = False,
+        vocab_size: int = 32,
         pad_token_id: int = 0,
         max_length: int = 2048,
+        max_protein_length: int = 50000,
+        base_scale: float = 1.0 / (960.0**0.5),
         **kwargs,
     ):
         super().__init__(**kwargs)
-        
+
         self.hidden_size = hidden_size
         self.num_hidden_layers = num_hidden_layers
         self.num_attention_heads = num_attention_heads
         self.intermediate_size = intermediate_size
-        self.dropout_prob = dropout_prob
         self.embedding_init_range = embedding_init_range
         self.decoder_init_range = decoder_init_range
-        self.rms_norm = rms_norm
         self.norm_eps = norm_eps
-        self.hidden_act = hidden_act
-        self.layer_norm_after_embedding = layer_norm_after_embedding
-        self.layer_norm_before_last_layer = layer_norm_before_last_layer
         self.vocab_size = vocab_size
-        self.ffn_bias = ffn_bias
-        self.att_bias = att_bias
         self.pad_token_id = pad_token_id
         self.max_length = max_length
-        
+        self.max_protein_length = max_protein_length
+        self.base_scale = base_scale
+
 
 class EncoderBlock(nn.Module):
     """Transformer encoder block."""
@@ -78,14 +72,11 @@ class EncoderBlock(nn.Module):
             hidden_size (int): _description_
             num_attention_heads (int): _description_
             intermediate_size (int, optional): _description_. Defaults to 2048.
-            dropout_prob (float, optional): _description_. Defaults to 0.1.
             activation (str, optional): _description_. Defaults to "relu".
             rms_norm (bool, optional): _description_. Defaults to True.
             norm_eps (float, optional): _description_. Defaults to 1e-5.
             pad_token_id (int, optional): _description_. Defaults to 0.
             max_length (int, optional): _description_. Defaults to 2048.
-            ffn_bias (bool, optional): _description_. Defaults to False.
-            att_bias (bool, optional): _description_. Defaults to False.
         """
         super().__init__()
 
@@ -93,97 +84,96 @@ class EncoderBlock(nn.Module):
         self.d_head = config.hidden_size // config.num_attention_heads
 
         # Attention
-        self.q = nn.Linear(in_features=config.hidden_size, out_features=config.hidden_size, bias=config.att_bias)
-        self.k = nn.Linear(in_features=config.hidden_size, out_features=config.hidden_size, bias=config.att_bias)
-        self.v = nn.Linear(in_features=config.hidden_size, out_features=config.hidden_size, bias=config.att_bias)
-        self.wo = nn.Linear(in_features=config.hidden_size, out_features=config.hidden_size, bias=config.att_bias)
-        self.resid_dropout = nn.Dropout(config.dropout_prob)
+        self.qkv = nn.Linear(in_features=config.hidden_size, out_features=config.hidden_size * 3, bias=False)
+        self.wo = nn.Linear(in_features=config.hidden_size, out_features=config.hidden_size, bias=False)
+
+        # Feedforward network with SwiGLU
+        # To keep the number of parameters and the amount of computation constant, we reduce the number of
+        # hidden units by a factor of 2/3 (https://arxiv.org/pdf/2002.05202.pdf) and make it a multiple of 8 to
+        # avoid RuntimeError due to misaligned operand
+        multiple_of = 8
+        intermediate_size = multiple_of * ((int(2 * config.intermediate_size / 3) + multiple_of - 1) // multiple_of)
 
         # Feedforward network
-        act = config.hidden_act.lower()
-        if act == "swiglu":
-            # To keep the number of parameters and the amount of computation constant, we reduce the number of
-            # hidden units by a factor of 2/3 (https://arxiv.org/pdf/2002.05202.pdf) and make it a multiple of 8 to
-            # avoid RuntimeError due to misaligned operand
-            multiple_of = 8
-            intermediate_size = int(2 * config.intermediate_size / 3)
-            intermediate_size = multiple_of * ((intermediate_size + multiple_of - 1) // multiple_of)
-            self.ffn = SwiGLU(
-                config.hidden_size,
-                intermediate_size,
-                config.hidden_size,
-                bias=config.ffn_bias
-            )
-        elif act == "relu":
-            self.ffn = nn.Sequential(
-                nn.Linear(config.hidden_size, config.intermediate_size, bias=config.ffn_bias),
-                nn.ReLU(),
-                nn.Linear(config.intermediate_size, config.hidden_size, bias=config.ffn_bias),
-            )
-        elif act == "gelu":
-            self.ffn = nn.Sequential(
-                nn.Linear(config.hidden_size, config.intermediate_size, bias=config.ffn_bias),
-                nn.GELU(),
-                nn.Linear(config.intermediate_size, config.hidden_size, bias=config.ffn_bias),
-            )
-        else:
-            raise ValueError(f"Unsupported hidden_act: {config.hidden_act}")
+        self.c_fc = nn.Linear(config.hidden_size, 2 * intermediate_size, bias=False)
+        self.silu = nn.SiLU()
+        self.mlp_c_proj = nn.Linear(intermediate_size, config.hidden_size, bias=False)
 
-        self.attention_norm = RMSNorm(config.hidden_size, config.norm_eps) if config.rms_norm else nn.LayerNorm(config.hidden_size, config.norm_eps)
-        self.ffn_norm = RMSNorm(config.hidden_size, config.norm_eps) if config.rms_norm else nn.LayerNorm(config.hidden_size, config.norm_eps)
+        self.attention_norm = nn.RMSNorm(config.hidden_size, config.norm_eps)
+        self.ffn_norm = nn.RMSNorm(config.hidden_size, config.norm_eps)
 
-        self.ffn_dropout = nn.Dropout(config.dropout_prob)
-
-    def forward(self, x: torch.Tensor, pad_mask: torch.Tensor, freqs_cis: torch.Tensor, output_attentions: bool):
-        attn, contact = self._att_block(self.attention_norm(x), pad_mask, freqs_cis, output_attentions)
-        x = x + attn
-        x = x + self._ff_block(self.ffn_norm(x))
-        return x, contact
-
-    def _att_block(self, x: torch.Tensor, pad_mask: torch.Tensor, freqs_cis: torch.Tensor, output_attentions: bool):
+    def forward(
+        self,
+        x: torch.Tensor,
+        attention_mask: torch.Tensor,
+        freqs_cis: torch.Tensor,
+        output_attentions: bool,
+        max_seqlen: int = None,
+        cu_seqlens: torch.Tensor = None,
+    ):
         batch_size, seq_len, _ = x.shape
-        xq, xk, xv = self.q(x), self.k(x), self.v(x)
 
         # Reshape for rotary embeddings
-        xq = xq.view(batch_size, seq_len, self.config.num_attention_heads, self.d_head)
-        xk = xk.view(batch_size, seq_len, self.config.num_attention_heads, self.d_head)
-        xv = xv.view(batch_size, seq_len, self.config.num_attention_heads, self.d_head)
+        xq, xk, xv = (
+            self.qkv(self.attention_norm(x))
+            .reshape(batch_size, seq_len, self.config.num_attention_heads, self.d_head * 3)
+            .chunk(3, axis=-1)
+        )
         xq, xk = apply_rotary_emb(xq, xk, freqs_cis)
 
-        # Compute the attention weight
+        # Attn block
         attn_weights = None
-        if output_attentions:
-            attn_weights = xq.permute(0, 2, 1, 3) @ xk.permute(0, 2, 3, 1) / (xq.size(-1) ** 0.5)
-            if pad_mask is not None:
-                attn_weights = attn_weights + pad_mask
-            attn_weights = attn_weights.softmax(-1)
 
-        # Compute the attention using xformers if the tensors are on GPU
-        if x.is_cuda:
-            # Input and output are of dimension (B, M, H, K) where B is the batch size, M the sequence length,
-            # H the number of heads, and K the embeding size per head
-            attn = memory_efficient_attention(
-                query=xq,
-                key=xk,
-                value=xv,
-                attn_bias=pad_mask,
-                p=self.config.dropout_prob if self.training else 0,
+        # Flash attention if the tensors are packed
+        if cu_seqlens is not None:
+            from flash_attn.flash_attn_interface import flash_attn_varlen_func
+
+            attn = flash_attn_varlen_func(
+                q=xq.squeeze(0),
+                k=xk.squeeze(0),
+                v=xv.squeeze(0),
+                cu_seqlens_q=cu_seqlens.squeeze(),
+                cu_seqlens_k=cu_seqlens.squeeze(),
+                max_seqlen_q=max_seqlen,
+                max_seqlen_k=max_seqlen,
+                dropout_p=0.0,
+                causal=False,
             )
+
+        # Eager attention if attention weights are needed in the output
+        elif output_attentions:
+            attn_weights = xq.permute(0, 2, 1, 3) @ xk.permute(0, 2, 3, 1) / (xq.size(-1) ** 0.5)
+            if attention_mask is not None:
+                attn_weights = attn_weights * attention_mask
+            attn_weights = attn_weights.softmax(-1)
+            attn = attn_weights @ xv.permute(0, 2, 1, 3)
+            attn = attn.transpose(1, 2)
+
+        # SDPA will pick an appropriate backend otherwise
         else:
-            # Input and output are of dimension (B, H, M, K)
             attn = scaled_dot_product_attention(
                 query=xq.transpose(1, 2),
                 key=xk.transpose(1, 2),
                 value=xv.transpose(1, 2),
-                attn_mask=pad_mask,
-                dropout_p=self.config.dropout_prob if self.training else 0,
+                attn_mask=attention_mask.bool() if attention_mask is not None else None,
+                dropout_p=0,
             ).transpose(1, 2)
 
-        attn_scores = self.wo(attn.reshape(batch_size, seq_len, self.config.num_attention_heads * self.d_head))
-        return (self.resid_dropout(attn_scores), attn_weights)
-    
-    def _ff_block(self, x: torch.Tensor):
-        return self.ffn_dropout(self.ffn(x))
+        attn = self.wo(attn.reshape(batch_size, seq_len, self.config.num_attention_heads * self.d_head))
+
+        # Residual stream
+        x = x + attn
+
+        # FFN block
+        uv = self.c_fc(self.ffn_norm(x))
+        u, v = torch.chunk(uv, 2, dim=-1)
+        x_mlp = u * self.silu(v)
+        h_mlp = self.mlp_c_proj(x_mlp)
+
+        # Residual stream
+        x = x + h_mlp
+
+        return x, attn_weights
 
 
 class AMPLIFYPreTrainedModel(PreTrainedModel):
@@ -192,8 +182,6 @@ class AMPLIFYPreTrainedModel(PreTrainedModel):
     def _init_weights(self, module):
         if isinstance(module, nn.Linear):
             module.weight.data.uniform_(-self.config.decoder_init_range, self.config.decoder_init_range)
-            if module.bias is not None:
-                module.bias.data.zero_()
         elif isinstance(module, nn.Embedding):
             module.weight.data.uniform_(-self.config.embedding_init_range, self.config.embedding_init_range)
 
@@ -201,9 +189,10 @@ class AMPLIFYPreTrainedModel(PreTrainedModel):
 class AMPLIFY(AMPLIFYPreTrainedModel):
     """The main model class.
 
-       Args:
-          config (amplify.model.amplify.AMPLIFYConfig): model configuration, usually defined from the Hydra configuration.
+    Args:
+       config (amplify.model.amplify.AMPLIFYConfig): model configuration, usually defined from the Hydra configuration.
     """
+
     def __init__(self, config: AMPLIFYConfig, **kwargs):
         super().__init__(config)
 
@@ -211,73 +200,101 @@ class AMPLIFY(AMPLIFYPreTrainedModel):
 
         self.encoder = nn.Embedding(config.vocab_size, config.hidden_size, padding_idx=config.pad_token_id)
 
-        if config.layer_norm_after_embedding:
-            self.layer_norm_1 = RMSNorm(config.hidden_size, config.norm_eps) if config.rms_norm else nn.LayerNorm(config.hidden_size, config.norm_eps)
-
         self.transformer_encoder = nn.ModuleList()
         for _ in range(config.num_hidden_layers):
             self.transformer_encoder.append(EncoderBlock(config))
 
-        if config.layer_norm_before_last_layer:
-            self.layer_norm_2 = RMSNorm(config.hidden_size, config.norm_eps) if config.rms_norm else nn.LayerNorm(config.hidden_size, config.norm_eps)
+        self.layer_norm = nn.RMSNorm(config.hidden_size, config.norm_eps)
 
         self.decoder = nn.Linear(config.hidden_size, config.vocab_size)
 
-        self.freqs_cis = precompute_freqs_cis(config.hidden_size // config.num_attention_heads, config.max_length)
-        
+        freqs_cis = precompute_freqs_cis(config.hidden_size // config.num_attention_heads, config.max_protein_length * 2)
+
+        # Ensures freqs_cis is moved to the same devices as the model. Non-persistent buffers are not saved in the state_dict.
+        self.register_buffer("freqs_cis", freqs_cis, persistent=False)
+
         # Initialize weights and apply final processing
         self.post_init()
 
-
     @classmethod
-    def load(cls, checkpoint_path: str, config_path: str):
+    def load(cls, checkpoint_path: str, config_path: str, vocab_path: str = None, tag: str = None):
 
         with open(config_path, "r") as file:
             cfg = yaml.safe_load(file)
 
+        if vocab_path is not None:
+            cfg["tokenizer"]["vocab_path"] = vocab_path
+
         model = AMPLIFY(AMPLIFYConfig(**cfg["model"], **cfg["tokenizer"]))
 
-        if checkpoint_path.endswith(".safetensors"):
+        if os.path.isdir(checkpoint_path):
+            state_dict = get_fp32_state_dict_from_zero_checkpoint(checkpoint_path, tag=tag)
+        elif checkpoint_path.endswith(".safetensors"):
             state_dict = safetensors.torch.load_file(checkpoint_path)
         elif checkpoint_path.endswith(".pt"):
             state_dict = torch.load(checkpoint_path)
         else:
-            raise ValueError(f"Expected checkpoint to be a `.pt` or `.safetensors` file.")
+            raise ValueError(f"Expected checkpoint to be a deepspeed folder, `.pt`, or `.safetensors` file.")
+
+        for key in list(state_dict.keys()):
+            if key.startswith("_orig_mod."):
+                new_key = key[len("_orig_mod.") :]
+                state_dict[new_key] = state_dict.pop(key)
+                key = new_key
+            if "ffn.w12" in key:
+                new_key = key.replace("ffn.w12", "c_fc")
+                state_dict[new_key] = state_dict.pop(key)
+            elif "ffn.w3" in key:
+                new_key = key.replace("ffn.w3", "mlp_c_proj")
+                state_dict[new_key] = state_dict.pop(key)
 
         model.load_state_dict(state_dict)
-        tokenizer = ProteinTokenizer(**cfg["tokenizer"])
+        tokenizer = ProteinTokenizer(**cfg["tokenizer"], max_length=cfg["trainer"]["train"]["max_length"])
         return model, tokenizer
 
-
-    def forward(self, src, pad_mask=None, output_hidden_states=False, output_attentions=False):
+    def forward(
+        self,
+        input_ids: torch.Tensor,
+        position_ids: torch.Tensor = None,
+        max_seqlen: int = None,
+        cu_seqlens: torch.Tensor = None,
+        attention_mask: torch.Tensor = None,
+        output_hidden_states: bool = False,
+        output_attentions: bool = False,
+    ):
         # Initialize
         hidden_states, attentions = [], []
 
         # Expand and repeat: (Batch, Length) -> (Batch, Heads, Length, Length)
-        if pad_mask is not None:
-            assert pad_mask.dtype != torch.bool and 1.0 not in pad_mask, "AMPLIFY expects an additive pad_mask"
-            pad_mask = pad_mask.unsqueeze(1).unsqueeze(1).repeat(1, self.config.num_attention_heads, pad_mask.size(-1), 1)
+        if attention_mask is not None:
+            attention_mask = attention_mask.unsqueeze(1).unsqueeze(1).repeat(1, self.config.num_attention_heads, attention_mask.size(-1), 1)
+
+        # Checks to be done if inputs are packed sequences
+        if cu_seqlens is not None:
+            assert not output_attentions, "Output attentions is not supported when sequences are packed."
+            assert max_seqlen is not None, "Missing max_seqlen. It must be provided when cu_seqlens are not None."
+            assert input_ids.shape[0] == 1, "Cumulative sequence lengths are provided but input_ids are not packed."
+            assert input_ids.is_cuda, "Packing uses an implementation of flash-attention and is only supported on GPU."
 
         # RoPE
-        self.freqs_cis = self.freqs_cis.to(src.device, non_blocking=True)
-        freqs_cis = self.freqs_cis[: src.shape[1]]
+        if position_ids is not None:
+            freqs_cis = self.freqs_cis[position_ids]
+        else:
+            freqs_cis = self.freqs_cis[: input_ids.shape[1]].unsqueeze(0).repeat(input_ids.shape[0], 1, 1)
 
         # Embedding
-        x = self.encoder(src)
-        if self.config.layer_norm_after_embedding:
-            x = self.layer_norm_1(x)
+        x = self.encoder(input_ids)
 
         # Transformer encoder
         for layer in self.transformer_encoder:
-            x, attn = layer(x, pad_mask, freqs_cis, output_attentions)
+            x, attn = layer(x, attention_mask, freqs_cis, output_attentions, max_seqlen, cu_seqlens)
             if output_hidden_states:
                 hidden_states.append(x)
             if output_attentions:
                 attentions.append(attn)
 
         # Classification head with layer norm
-        logits = self.decoder(self.layer_norm_2(x) if self.config.layer_norm_before_last_layer else x)
+        logits = self.decoder(self.layer_norm(x))
 
         # Return logits or the output of the last hidden layer
         return MaskedLMOutput(logits=logits, hidden_states=hidden_states, attentions=attentions)
-

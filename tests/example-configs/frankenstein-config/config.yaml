@@ -7,7 +7,7 @@ wandb:
   - PLM
   - 350M
   - Mila
-  dir: tests/outputs/unit-test-c3f5e09a-fe5c-4bfc-8252-1fea9839b46b/wandb
+  dir: tests/logs/unit-test-c3f5e09a-fe5c-4bfc-8252-1fea9839b46b/wandb
   mode: offline
   log_interval: 5
 dataset:
@@ -62,7 +62,7 @@ scheduler:
   final_step: 900000
   warmup_steps: 1000
 trainer:
-  dir: tests/outputs/unit-test-c3f5e09a-fe5c-4bfc-8252-1fea9839b46b
+  dir: tests/logs/unit-test-c3f5e09a-fe5c-4bfc-8252-1fea9839b46b
   resume: true
   max_steps: 1000
   max_checkpoints: 10

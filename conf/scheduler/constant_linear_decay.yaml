@@ -1,5 +1,5 @@
 decay: linear
 final_ratio: 0.1
 warmup_steps: 1000
-constant_steps: 0
+constant_steps: 700000
 decay_steps: 900000
