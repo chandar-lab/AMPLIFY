@@ -4,6 +4,12 @@
 <bos>
 <eos>
 |
+X
+B
+O
+U
+Z
+J
 L
 A
 G
@@ -24,4 +30,3 @@ M
 H
 W
 C
-B

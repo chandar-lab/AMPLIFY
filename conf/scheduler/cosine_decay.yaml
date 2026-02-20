@@ -1,4 +1,5 @@
-_name_: CosineDecay
+decay: cosine
 final_ratio: 0.1
-final_step: 900000
 warmup_steps: 1000
+constant_steps: 0
+decay_steps: 900000

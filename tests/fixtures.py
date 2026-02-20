@@ -49,13 +49,13 @@ def temporary_file_path():
 
 
 def _training_run_output_path():
-    return os.path.join(this_dir, f"outputs/unit-test-{_new_id()}")
+    return os.path.join(this_dir, f"logs/unit-test-{_new_id()}")
 
 
 @pytest.fixture(scope="function")
 def training_run_output_path():
 
-    path = os.path.join(this_dir, f"outputs/unit-test-{_new_id()}")
+    path = os.path.join(this_dir, f"logs/unit-test-{_new_id()}")
     yield path
 
     try:

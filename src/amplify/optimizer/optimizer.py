@@ -1,8 +1,10 @@
 import torch
-import torch.optim as optim
+from torch.optim import AdamW
+
+from accelerate.utils import DistributedType
 
 
-def get_optimizer(model: torch.nn.Module, **kwargs) -> torch.optim.Optimizer:
+def get_optimizer(model: torch.nn.Module, distributed_type: DistributedType, **kwargs) -> torch.optim.Optimizer:
     """Optimizer.
 
     Args:
@@ -12,7 +14,7 @@ def get_optimizer(model: torch.nn.Module, **kwargs) -> torch.optim.Optimizer:
         torch.optim.Optimizer: Initialized optimizer.
     """
     match kwargs.pop("_name_"):
-        case "Adam":
-            return optim.Adam(model.parameters(), **kwargs)
         case "AdamW":
-            return optim.AdamW(model.parameters(), **kwargs)
+            return AdamW(model.parameters(), **kwargs)
+        case _:
+            raise ValueError("AdamW is the only supported optimizer.")

@@ -1,101 +1,65 @@
 import math
 import torch
 from functools import partial
-from torch.optim.lr_scheduler import LambdaLR
-
-
-def learning_rate_fn(
-    current_step: int,
-    algorithm: str,
-    warmup_steps: int,
-    final_step: int,
-    final_ratio: float,
-    warm_restart_steps: int | None = None,
-) -> float:
-    """Return the factor we multiply learning rate with.
-
-    Args:
-        current_step (int): Current optimizer step.
-        algorithm (str): Name of the algorithm. Only "LinearDecay", "LinearDecayWarmRestart", "CosineDecay",
-        and "CosineDecayWarmRestart" are supported.
-        warmup_steps (int): Number of warmup steps (over which to linearly increase the learning rate from 0 to the peak
-        learning rate).
-        final_step (int): Number of decay steps (over which to decay the learning rate from the peak learning rate to
-        the final ratio).
-        final_ratio (float): Number we multiply learning rate at the end of linear changing process.
-        warm_restart_steps (int | None): Number of steps to periodically restart the learning rate.
-
-    Returns:
-        float: Factor with which to multiply the learning rate at the current step.
-    """
-    if current_step < warmup_steps:
-        return float(current_step) / float(warmup_steps)
-    elif current_step < final_step:
-        steps_remaining = final_step - current_step
-        steps_after_warmup = current_step - warmup_steps
-        total_steps_after_warmup = final_step - warmup_steps
-
-        if "LinearDecay" in algorithm:
-            if warm_restart_steps is None or warm_restart_steps == 0:
-                return (steps_remaining + steps_after_warmup * final_ratio) / (final_step - warmup_steps)
-            else:
-                return final_ratio + (1 - final_ratio) * (
-                    1 - (steps_after_warmup // warm_restart_steps * warm_restart_steps / total_steps_after_warmup)
-                ) * ((warm_restart_steps - (steps_after_warmup % warm_restart_steps)) / warm_restart_steps)
-
-        elif "CosineDecay" in algorithm:
-            factor = (
-                (1 - final_ratio) * (steps_remaining + steps_after_warmup * final_ratio) / (final_step - warmup_steps)
-            )
-            if warm_restart_steps is None or warm_restart_steps == 0:
-                return (
-                    final_ratio + factor * (1 + math.cos(math.pi * steps_after_warmup / total_steps_after_warmup)) / 2
-                )
-            else:
-                return (
-                    final_ratio
-                    + factor
-                    * (1 + math.cos(math.pi * (steps_after_warmup % warm_restart_steps) / warm_restart_steps))
-                    / 2
-                )
-
-    return final_ratio
+from torch.optim.lr_scheduler import LambdaLR, LinearLR, CosineAnnealingLR, SequentialLR
 
 
 def get_scheduler(
     optimizer: torch.optim.Optimizer,
-    _name_: str,
+    lr: float,
+    decay: str,
     warmup_steps: int,
-    final_step: int,
+    decay_steps: int,
     final_ratio: float,
-    warm_restart_steps: int | None = None,
+    constant_steps: int = 0,
     **kwargs,
 ) -> torch.optim.lr_scheduler:
     """Scheduler.
 
     Args:
         optimizer (torch.optim.Optimizer): Optimizer.
-        _name_ (str): Name of the algorithm. Only "LinearDecay", "LinearDecayWarmRestart", "CosineDecay",
         and "CosineDecayWarmRestart" are supported.
         warmup_steps (int): Number of warmup steps (over which to linearly increase the learning rate from 0 to the peak
         learning rate).
-        final_step (int): Number of decay steps (over which to decay the learning rate from the peak learning rate to
-        the final ratio).
-        final_ratio (float): Number we multiply learning rate at the end of linear changing process.
-        warm_restart_steps (int | None, optional): _description_. Number of steps to periodically restart the learning
-        rate.
+        constant_steps (int): Global training step at which the constant scheduler should end.
+        decay_steps (int): Global training step at which the decay scheduler should end.
+        final_ratio (float): Number we multiply learning rate with at the end of the decay process.
 
     Returns:
         torch.optim.lr_scheduler: Initialized scheduler.
     """
-    return LambdaLR(
-        optimizer,
-        partial(
-            learning_rate_fn,
-            algorithm=_name_,
-            warmup_steps=warmup_steps,
-            final_step=final_step,
-            final_ratio=final_ratio,
-            warm_restart_steps=warm_restart_steps,
-        ),
+
+    if decay.lower() not in ["cosine", "linear"]:
+        raise ValueError(f"Decay {decay} is not a valid type. Options are cosine and linear.")
+
+    assert (constant_steps == 0 and warmup_steps < decay_steps) or (
+        warmup_steps < constant_steps and constant_steps < decay_steps
+    ), "warmup_steps, constant_steps and decay_steps are milestones parameters, not total number of steps for each scheduler."
+
+    schedulers = []
+    milestones = []
+
+    # Warmup scheduler
+    if warmup_steps > 0:
+        schedulers.append(LinearLR(optimizer, start_factor=1e-4, end_factor=1.0, total_iters=warmup_steps))
+        milestones.append(warmup_steps)
+
+    # Optional constant scheduler at peak learning rate
+    if constant_steps:
+        schedulers.append(LambdaLR(optimizer, lr_lambda=lambda _: 1))
+        milestones.append(constant_steps)
+
+    # Decay scheduler
+    schedulers.append(
+        CosineAnnealingLR(optimizer, T_max=decay_steps, eta_min=lr * final_ratio)
+        if decay == "cosine"
+        else LinearLR(optimizer, start_factor=1.0, end_factor=final_ratio, total_iters=(decay_steps - constant_steps))
     )
+
+    milestones.append(decay_steps)
+
+    # Final constant scheduler at lowest learning rate
+    _constant_min_lr = lambda _: final_ratio
+    schedulers.append(LambdaLR(optimizer, lr_lambda=_constant_min_lr))
+
+    return SequentialLR(optimizer, schedulers, milestones)

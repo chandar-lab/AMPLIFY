@@ -1,3 +1,3 @@
-__all__ = ["AMPLIFY", "AMPLIFYConfig"]
+__all__ = ["AMPLIFY", "AMPLIFYConfig", "ProteinTokenizer"]
 
-from .amplify import AMPLIFY, AMPLIFYConfig
+from .amplify import AMPLIFY, AMPLIFYConfig, ProteinTokenizer
