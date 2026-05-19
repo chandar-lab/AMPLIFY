@@ -1,0 +1,26 @@
+defaults:
+  - _self_
+
+# --- Paths Configuration ---
+paths:
+  # The path where Hydra will output results (relative to run directory)
+  save_dir: /home/mila/s/shawn.whitfield/scratch/results/nearest_neighbor
+  
+# --- Model Configuration ---
+plm_model:
+  # Corresponds to a key in your project.utils.strs.plms dictionary
+  shorthand: amplify_120m
+  model_layer_num: 1
+
+knn:
+  neighbor_ks: [1,3,5,7,11]
+  nn_flavour: k
+  neighbor_weight: distance
+  distance_metric: euclidean
+
+# --- Execution Parameters ---
+data:
+  dataset_name: interpro_active_site
+  num_folds: 3
+  subsample_fraction: 0.5
+  seed: 24895

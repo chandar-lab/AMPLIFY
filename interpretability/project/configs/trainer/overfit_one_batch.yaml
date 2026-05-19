@@ -1,0 +1,22 @@
+# Note: This configuration should be run in combination with an algorithm. For example like this:
+# `python project/main.py algorithm=example datamodule=cifar10 trainer=overfit_one_batch`
+#
+defaults:
+  - default
+
+callbacks:
+  model_checkpoint: null
+  early_stopping: null
+min_epochs: 1
+max_epochs: 50
+log_every_n_steps: 1
+# prints
+profiler: null
+
+# debugs
+fast_dev_run: False
+overfit_batches: 1
+limit_val_batches: 0
+limit_test_batches: 0
+detect_anomaly: true
+enable_checkpointing: false

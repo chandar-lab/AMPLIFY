@@ -1,0 +1,36 @@
+# Configuration for SAE (Sparse Autoencoder) Training
+# This config trains a sparse autoencoder on language model activations
+
+_target_: project.algorithms.plm_sae_module.SAELightningModule
+
+plm_config:
+  _target_: project.algorithms.plm_sae_module.ProteinLanguageModelConfig
+  model_name: "facebook/esm2_t6_8M_UR50D" #or chandar-lab/AMPLIFY_120M
+  layer_to_use: 5
+
+sae_config:
+  _target_: project.algorithms.plm_sae_module.SAEConfig
+  # mode: pretrained
+  plm_model: null  # "esm2-8m" or "esm2-650m" for pretrained SAE
+  plm_layer: null  # embedding layer the SAE was pretrained on
+
+  # mode: from scratch
+  sae_target: project.algorithms.networks.auto_encoder.UntiedWeightAutoEncoder
+  input_dim: null
+  dict_size: 4096
+  k: 1000
+  sparsity_weight: 1e-3
+
+training_config:
+  _target_: project.algorithms.plm_sae_module.TrainingConfig
+
+  # Optimizer settings
+  learning_rate: 1e-3
+  weight_decay: 1e-4
+  adam_epsilon: 1e-8
+  adam_betas: [0.9, 0.999]
+
+  use_scheduler: false
+
+  # Logging
+  log_every_n_steps: 50

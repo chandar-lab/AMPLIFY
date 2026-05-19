@@ -1,0 +1,14 @@
+# @package _global_
+defaults:
+  - override /hydra/launcher: patched_submitit_slurm
+hydra:
+  mode: MULTIRUN
+  run:
+    # output directory, generated dynamically on each run
+    dir: logs/${name}/runs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  sweep:
+    dir: logs/${name}/multiruns
+    subdir: ${hydra.job.id}
+  launcher:
+    stderr_to_stdout: true
+    submitit_folder: ${hydra.sweep.dir}/%j

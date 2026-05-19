@@ -1,0 +1,1 @@
+This folder contains .yaml files used by Hydra to compose different setups for linear probe training.

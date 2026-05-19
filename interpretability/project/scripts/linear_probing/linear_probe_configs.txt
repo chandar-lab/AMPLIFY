@@ -1,0 +1,12 @@
+"facebook/esm2_t12_35M_UR50D" 0 uniprot_peptide_512_cutoff
+"facebook/esm2_t12_35M_UR50D" 1 uniprot_peptide_512_cutoff
+"facebook/esm2_t12_35M_UR50D" 2 uniprot_peptide_512_cutoff
+"facebook/esm2_t12_35M_UR50D" 3 uniprot_peptide_512_cutoff
+"facebook/esm2_t12_35M_UR50D" 4 uniprot_peptide_512_cutoff
+"facebook/esm2_t12_35M_UR50D" 5 uniprot_peptide_512_cutoff
+"facebook/esm2_t12_35M_UR50D" 6 uniprot_peptide_512_cutoff
+"facebook/esm2_t12_35M_UR50D" 7 uniprot_peptide_512_cutoff
+"facebook/esm2_t12_35M_UR50D" 8 uniprot_peptide_512_cutoff
+"facebook/esm2_t12_35M_UR50D" 9 uniprot_peptide_512_cutoff
+"facebook/esm2_t12_35M_UR50D" 10 uniprot_peptide_512_cutoff
+"facebook/esm2_t12_35M_UR50D" 11 uniprot_peptide_512_cutoff

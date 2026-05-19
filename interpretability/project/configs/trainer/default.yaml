@@ -1,0 +1,21 @@
+defaults:
+  - callbacks: default.yaml
+  - logger: wandb # use trainer/logger=wandb to enable wandb logging. null to disable
+_target_: lightning.Trainer
+accelerator: auto
+strategy: auto
+devices: 1
+
+deterministic: true
+
+fast_dev_run: false
+
+min_epochs: 1
+max_epochs: 10
+
+# path to output directory, created dynamically by hydra
+# path generation pattern is specified in `configs/hydra/default.yaml`
+# use it to store all files generated during the run, like checkpoints and metrics
+default_root_dir: ${hydra:runtime.output_dir}
+
+detect_anomaly: false

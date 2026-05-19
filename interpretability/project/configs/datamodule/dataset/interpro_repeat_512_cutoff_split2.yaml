@@ -1,0 +1,4 @@
+data_path: /home/mila/s/shawn.whitfield/scratch/data/datasets/h_sapiens_proteome/processed_subsets/interpro/h_sapiens_proteome_interpro_InterPro_repeat_clustersplit_30_50_512_cutoff_split2.parquet.gz
+dataset_name: interpro_repeat_512_cutoff_split2
+task_level: protein_level
+task_type: binary_classification

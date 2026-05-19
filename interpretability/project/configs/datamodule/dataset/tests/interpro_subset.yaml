@@ -1,0 +1,3 @@
+data_path: "/home/mila/s/shawn.whitfield/scratch/data/tasks/domains/homo_sapiens_proteome_one_hot_interpro_domains_001_subset.parquet.gz"
+task_type: "binary_classification"
+task_level: "protein_level"

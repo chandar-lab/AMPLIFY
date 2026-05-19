@@ -1,0 +1,4 @@
+data_path: /home/mila/s/shawn.whitfield/scratch/data/datasets/biomap-research/ssp_q8_processed.parquet.gz
+dataset_name: biomap_ssp_q8
+task_level: amino_acid_level
+task_type: multiclass_classification

@@ -1,0 +1,22 @@
+# @package _global_
+defaults:
+  - override /hydra/launcher: patched_submitit_slurm
+
+hydra:
+  mode: MULTIRUN
+  launcher:
+    cpus_per_task: 4
+    gpus_per_task: 1
+    array_parallelism: 8 # max num of jobs to run in parallel
+    # Other things to pass to `sbatch`:
+    additional_parameters:
+      time: 1-00:00:00 # maximum wall time allocated for the job (D-HH:MM:SS)
+      # TODO: It would be better to have those be arguments to the launcher (as is the case in the
+      # RemoteLauncherPlugin), that way we could use only SLURM argument names..
+      nodes: 1
+      mem: 16G
+      ntasks_per_node: 1
+
+    ## A list of commands to add to the generated sbatch script before running srun:
+    # setup:
+    # - export LD_PRELOAD=/some/folder/with/libraries/

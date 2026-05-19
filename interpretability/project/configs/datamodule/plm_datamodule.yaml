@@ -1,0 +1,16 @@
+defaults:
+  - dataset: uniprot_secondary_structure  # default dataset, can be overridden
+
+_target_: project.datamodules.datamodule.PLMDataModule
+
+dataset_name: ${datamodule.dataset.dataset_name}
+data_path: ${datamodule.dataset.data_path}
+task_type: ${datamodule.dataset.task_type}
+task_level: ${datamodule.dataset.task_level}
+
+batch_size: 8
+num_workers: 2
+train_size: 0.8
+val_size: 0.1
+test_size: 0.1
+random_state: 24895

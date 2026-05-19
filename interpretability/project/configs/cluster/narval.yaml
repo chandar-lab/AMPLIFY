@@ -1,0 +1,9 @@
+# @package _global_
+defaults:
+  - mila.yaml
+
+hydra:
+  launcher:
+    executor:
+      cluster_hostname: narval
+      internet_access_on_compute_nodes: false

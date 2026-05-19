@@ -1,0 +1,17 @@
+# @package _global_
+
+defaults:
+  - override /algorithm: plm_sae_module
+
+trainer:
+  max_epochs: 10
+  devices: auto
+  val_check_interval: 50
+  enable_checkpointing: true
+hydra:
+  run:
+    # output directory, generated dynamically on each run
+    dir: logs/${name}
+
+name: sae_training
+ckpt_path: last
