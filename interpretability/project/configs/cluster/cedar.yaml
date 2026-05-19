@@ -1,0 +1,12 @@
+# @package _global_
+defaults:
+  - narval
+
+# Use this to specify which remote slurm cluster the job should run on.
+# Remember to also use the resources group to select the resources allocated to the job!
+
+hydra:
+  launcher:
+    executor:
+      cluster_hostname: cedar
+      internet_access_on_compute_nodes: true

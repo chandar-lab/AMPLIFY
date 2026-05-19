@@ -1,0 +1,4 @@
+dataset_name: "GO_cc_tiny"
+data_path: "/home/mila/s/shawn.whitfield/scratch/data/datasets/h_sapiens_proteome/processed_subsets/go/h_sapiens_proteome_go_cellular_component_clustersplit_25_50_tiny.parquet.gz"
+task_type: "binary_classification"
+task_level: "protein_level"

@@ -1,0 +1,13 @@
+_target_: project.datamodules.datamodule.PLMDataModule
+batch_size: 8
+data_path: ${datamodule.dataset.data_path}
+dataset_name: ${datamodule.dataset.dataset_name}_split1
+defaults:
+- dataset: uniprot_secondary_structure
+num_workers: 2
+random_state: 24895
+task_level: ${datamodule.dataset.task_level}
+task_type: ${datamodule.dataset.task_type}
+test_size: 0.1
+train_size: 0.8
+val_size: 0.1

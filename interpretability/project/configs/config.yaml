@@ -1,0 +1,29 @@
+defaults:
+  - base_config
+  - _self_
+  - algorithm: null
+  - datamodule: plm_datamodule
+  - trainer: default
+  - hydra: default
+  - resources: null #gpu
+  - cluster: null #mila
+#all the above is shared between experiments
+  - experiment: null
+
+# Configuration name for logging and output directories
+name: default
+
+# Logging configuration
+log_level: info
+
+# Random seed for reproducibility
+seed: 24895
+
+# Debug and verbose flags
+debug: false
+verbose: false
+
+# Checkpoint path for resuming training
+ckpt_path: null
+
+# name: "${hydra:runtime.choices.algorithm}-${hydra:runtime.choices.network}-${hydra:runtime.choices.datamodule}"

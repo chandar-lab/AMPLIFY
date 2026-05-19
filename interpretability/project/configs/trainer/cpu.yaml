@@ -1,0 +1,6 @@
+defaults:
+  - default.yaml
+
+accelerator: cpu
+gpus: 0
+strategy: null

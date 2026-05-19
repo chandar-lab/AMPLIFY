@@ -1,0 +1,4 @@
+data_path: /home/mila/s/shawn.whitfield/scratch/data/datasets/biomap-research/metal_ion_binding_processed_512_cutoff.parquet.gz
+dataset_name: biomap_metal_ion_binding_512_cutoff
+task_level: protein_level
+task_type: binary_classification

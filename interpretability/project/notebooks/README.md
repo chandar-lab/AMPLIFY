@@ -1,0 +1,1 @@
+This folder contains notebooks used to initially prototype and visualize different components of the pipeline before the notebooks are converted (manually) to python scripts and launched through slurm.

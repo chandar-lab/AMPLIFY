@@ -1,0 +1,4 @@
+# Defines the dataset-specific configuration for secondary_structure
+data_path: "/home/mila/s/shawn.whitfield/scratch/data/datasets/h_sapiens_proteome/uniprot_annotations/h_sapiens_proteome_uniprot_secondary_structure_subset.parquet.gz"
+task_type: "multiclass_classification"
+task_level: "amino_acid_level"

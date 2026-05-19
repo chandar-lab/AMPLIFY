@@ -1,0 +1,32 @@
+defaults:
+  - model_checkpoint.yaml
+  - early_stopping.yaml
+  - model_summary.yaml
+  - rich_progress_bar.yaml
+  - _self_
+
+
+model_checkpoint:
+  monitor: "val/loss" # name of the logged metric which determines when model is improving
+  mode: "min" # "max" means higher metric value is better, can be also "min"
+  save_top_k: 1 # save k best models (determined by above metric)
+  save_last: True # additionally always save model from last epoch
+  verbose: False
+  dirpath: "${hydra:runtime.output_dir}/checkpoints"
+  filename: "epoch_{epoch:03d}"
+  auto_insert_metric_name: False
+
+
+early_stopping:
+  monitor: "val/loss"
+  patience: 5  # Stop training if accuracy doesn't improve for `patience` epochs.
+  mode: "min"
+
+model_summary:
+  max_depth: 2
+
+lr_monitor:
+  _target_: lightning.pytorch.callbacks.LearningRateMonitor
+
+throughput:
+  _target_: project.algorithms.callbacks.samples_per_second.MeasureSamplesPerSecondCallback

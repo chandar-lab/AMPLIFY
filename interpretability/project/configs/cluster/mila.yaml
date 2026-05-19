@@ -1,0 +1,24 @@
+# @package _global_
+defaults:
+  - override /hydra/launcher: remote_submitit_slurm
+
+# Use this to specify which remote slurm cluster the job should run on.
+# Remember to also use the resources group to select the resources allocated to the job!
+hydra:
+  mode: MULTIRUN
+  run:
+    # output directory, generated dynamically on each run
+    dir: logs/${name}/runs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  sweep:
+    dir: logs/${name}/multiruns
+    subdir: ${hydra.job.id}
+
+  launcher:
+    executor:
+      _target_: remote_slurm_executor.RemoteSlurmExecutor
+      _partial_: true
+      folder: "${hydra.sweep.dir}/%j"
+      cluster_hostname: mila
+      internet_access_on_compute_nodes: true
+
+    stderr_to_stdout: true

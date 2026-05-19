@@ -1,0 +1,4 @@
+data_path: /home/mila/s/shawn.whitfield/scratch/data/datasets/biomap-research/ssp_q3_processed_512_cutoff.parquet.gz
+dataset_name: biomap_ssp_q3_512_cutoff
+task_level: amino_acid_level
+task_type: multiclass_classification

@@ -1,0 +1,4 @@
+data_path: /home/mila/s/shawn.whitfield/scratch/data/datasets/h_sapiens_proteome/processed_subsets/uniprot_ann/h_sapiens_proteome_uniprot_membrane_pass_clustersplit_20_50_512_cutoff_split1.parquet.gz
+dataset_name: uniprot_membrane_pass_512_cutoff_split1
+task_level: amino_acid_level
+task_type: multiclass_classification

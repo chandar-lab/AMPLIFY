@@ -1,0 +1,40 @@
+num_proc: 8
+max_samples_per_file: 10000
+output_path: /home/mila/s/shawn.whitfield/scratch/data/embeddings
+# wandb:
+#   name: null
+#   project: proseqo
+#   entity: drug-discovery-amgen
+#   tags: []
+#   dir: outputs/${now:%Y-%m-%d-%H-%M-%S}/wandb
+#   mode: disabled
+#   log_interval: 100
+accelerate:
+  max_checkpoints: 3
+tokenizer:
+  pretrained_model_name_or_path: chandar-lab/AMPLIFY_350M
+  trust_remote_code: true
+  token: 
+datacollator:
+  packed: false
+  pad_to_multiple_of: 8
+  padding: true
+  pin_memory: true
+  num_workers: 8
+  mask_probability: 0
+  batch_size: 8
+  samples_per_batch: 8
+model:
+  trunk:
+    pretrained_model_name_or_path: chandar-lab/AMPLIFY_350M
+    trust_remote_code: true
+    max_length: 2048
+    token: 
+  classifier:
+    hidden_size: 512
+    num_labels: 2
+    layer_idx: -2
+  weights_path: AmplifyClassifier350_base_WD.ckpt # Ignore
+dataset:
+  name: u100_train_10k_all_layers
+  path: datasets/uniref100_train_10k.csv

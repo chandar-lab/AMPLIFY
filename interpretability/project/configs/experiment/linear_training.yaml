@@ -1,0 +1,17 @@
+# @package _global_
+defaults:
+  - override /algorithm: probing_lightning_module
+
+trainer:
+  max_epochs: 50
+  devices: auto
+  val_check_interval: 25
+  enable_checkpointing: true
+  
+hydra:
+  run:
+    # output directory, generated dynamically on each run
+    dir: logs/${name}
+
+name: linear_probing
+ckpt_path: last

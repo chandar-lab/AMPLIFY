@@ -1,0 +1,38 @@
+# Configuration for Linear Classifier Probe Training
+# This config trains simple linear classifiers on protein language model activations
+
+_target_: project.algorithms.lightning_module.ProbingLightningModule
+
+plm_config:
+  _target_: project.algorithms.lightning_module.ProteinLanguageModelConfig
+  model_name: "facebook/esm2_t6_8M_UR50D" #or chandar-lab/AMPLIFY_120M
+  layer_to_use: 5
+  normalize_embeddings: false
+
+linear_config:
+  _target_: project.algorithms.lightning_module.LinearModelConfig
+  input_dim: null # Set dynamically based on plm architecture
+  output_dim: null # Set dynamically based on the targets in the data module
+  purpose: null # set dynamically based on the task type in the data module
+
+
+training_config:
+  _target_: project.algorithms.lightning_module.TrainingConfig
+
+  # Optimizer settings
+  learning_rate: 1e-3
+  weight_decay: 1e-4
+  adam_epsilon: 1e-8
+  adam_betas: [0.9, 0.999]
+
+  # Logging
+  log_every_n_steps: 50
+
+evaluation_config:
+  _target_: project.algorithms.lightning_module.EvaluationConfig
+
+  preds_dir: "/home/mila/s/shawn.whitfield/scratch/results/linear_probing/predictions/"
+  metrics_dir: "/home/mila/s/shawn.whitfield/scratch/results/linear_probing/metrics/"
+  num_resamples: 7
+  subsample_proportion: 0.5
+  compute_resampled_metrics_on_test_end: True

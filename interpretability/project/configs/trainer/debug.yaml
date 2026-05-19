@@ -1,0 +1,15 @@
+defaults:
+  - default.yaml
+  - override callbacks: no_checkpoints
+min_epochs: 1
+max_epochs: 2
+# prints
+profiler: null
+
+# debugs
+fast_dev_run: true
+overfit_batches: 0
+limit_val_batches: 1.0
+limit_test_batches: 1.0
+detect_anomaly: true
+enable_checkpointing: false
