@@ -5,7 +5,7 @@
   <a href="https://huggingface.co/chandar-lab/recamplify"><img src="https://img.shields.io/badge/Hugging%20Face-Models-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black" alt="Hugging Face models"></a>
 </p>
 
-**Recursive pretraining enables test-time scaling in protein language models.**
+**recAMPLIFY: Large-Scale Pretraining of Recursive Protein Language Models**
 
 Official code for *recAMPLIFY*: a compact masked protein language model that scales
 **computation per sequence** rather than parameter count. A non-recurrent *stem* and *exit*
