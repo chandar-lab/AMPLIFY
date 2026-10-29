@@ -1,0 +1,56 @@
+# HuggingFace-style training arguments
+output_dir: logs/${now:%Y-%m-%d-%H-%M-%S}
+resume_from_checkpoint: true
+
+# Training control
+max_steps: 1000000
+eval_steps: 1000
+logging_steps: 100
+save_steps: 1000
+save_total_limit: 10
+
+# Optimizer
+optimizer:
+  type: AdamW
+  lr: 1e-3
+  betas: [0.9, 0.95]
+  eps: 1e-8
+  weight_decay: 0.01
+  fused: true
+  max_grad_norm: 1.0
+gradient_accumulation_steps: 1
+
+# Scheduler
+scheduler:
+  type: cosine_with_min_lr
+  num_warmup_steps: 1000
+  num_training_steps: 900000
+  kwargs:
+    min_lr_rate: 0.1
+
+# Hardware
+tf32: true
+disable_tqdm: false
+
+# Data loading
+per_device_train_batch_size: 16
+per_device_train_batch_tokens: null
+per_device_eval_batch_size: 64
+per_device_eval_batch_tokens: null
+dataloader_num_workers: 4
+dataloader_drop_last: true
+dataloader_persistent_workers: true
+dataloader_pin_memory: true
+dataloader_prefetch_factor: 4
+
+# Data collator
+mlm: true
+mlm_probability: 0.15
+max_length: 512
+packing: true
+pad_to_multiple_of: null  # set to max_length (padding) or token budget (packing)
+random_truncate: true
+exclude_special_tokens_from_masking: true
+
+# Custom (Hugging Face checkpoint management)
+hf_save_steps: 10000

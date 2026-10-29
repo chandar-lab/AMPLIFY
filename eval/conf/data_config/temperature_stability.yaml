@@ -1,0 +1,13 @@
+defaults:
+  - biomap_research_sequence_classification
+
+dataset_name: biomap-research/temperature_stability
+split_train: false
+split_seed: null
+num_labels: 2
+name: temperature_stability
+
+# xTrimoPGLM (Chen et al. 2024) reports MCC for this task; select and report by it.
+evaluator_overrides:
+  metrics: ["mcc", "accuracy", "f1"]
+  decision_metric: "mcc"

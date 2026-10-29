@@ -1,0 +1,140 @@
+# Configuration file demonstrating token-level evaluation setup
+
+# Example token classification evaluator configurations for Hydra
+token_evaluator_configs:
+
+  # Base TokenClassificationEvaluator (online mode)
+  token_evaluator_online:
+    _target_: apperitif.evaluation.TokenClassificationEvaluator.TokenClassificationEvaluator
+    metrics: ["accuracy", "f1", "precision", "recall"]
+    decision_metric: "f1"
+    num_labels: 3
+    target_column: "labels"
+    precomputing_batch_size: 32
+    autocast_precision: "fp16"
+    max_length: null
+    evaluation_mode: "online"
+
+  # MLP TokenClassificationEvaluator (offline mode, feature extraction)
+  mlp_token_feature_extraction:
+    _target_: apperitif.evaluation.TokenClassificationEvaluator.MLPTokenClassificationEvaluator
+    metrics: ["accuracy", "f1", "precision", "recall"]
+    decision_metric: "f1"
+    num_labels: 3
+    target_column: "labels"
+    precomputing_batch_size: 64
+    autocast_precision: "fp16"
+    max_length: null
+    evaluation_mode: "offline"
+    # MLP-specific parameters
+    hidden_size: [512, 1024, 2048]
+    learning_rate: [1e-3, 5e-4, 1e-4]
+    num_epochs: [5, 10, 20]
+    weight_decay: [0, 1e-4, 1e-3]
+    batch_size: [32, 64, 128]
+    seeds: [42, 43, 44, 45, 46]
+    verbose: "reduced"
+    finetuning: false
+    precomputed: true
+
+  # MLP TokenClassificationEvaluator (offline mode, finetuning)
+  mlp_token_finetuning:
+    _target_: apperitif.evaluation.TokenClassificationEvaluator.MLPTokenClassificationEvaluator
+    metrics: ["accuracy", "f1", "precision", "recall"]
+    decision_metric: "f1"
+    num_labels: 3
+    target_column: "labels"
+    precomputing_batch_size: 16
+    autocast_precision: "fp16"
+    max_length: null
+    evaluation_mode: "offline"
+    # MLP-specific parameters
+    hidden_size: [512, 1024]
+    learning_rate: [1e-4, 5e-5, 1e-5]
+    num_epochs: [3, 5, 10]
+    weight_decay: [0, 1e-4, 1e-3]
+    batch_size: [4, 8, 16]
+    seeds: [42, 43, 44]
+    verbose: "reduced"
+    finetuning: true
+    precomputed: false
+
+  # Quick test configuration
+  mlp_token_quick_test:
+    _target_: apperitif.evaluation.TokenEvaluator.MLPTokenEvaluator
+    metrics: ["accuracy", "f1"]
+    decision_metric: "f1"
+    num_labels: 3
+    target_column: "labels"
+    precomputing_batch_size: 32
+    autocast_precision: "fp16"
+    max_length: null
+    evaluation_mode: "offline"
+    hidden_size: [1024]
+    learning_rate: [3e-4]
+    num_epochs: [5]
+    weight_decay: [0.001]
+    batch_size: [64]
+    seeds: [42]
+    verbose: true
+    finetuning: false
+    precomputed: true
+
+# Example model configurations for token-level tasks
+model_configs:
+  amplify_token:
+    _target_: apperitif.models.Amplify.AmplifyTokenEncoder
+    config:
+      _target_: apperitif.models.Amplify.AmplifyTokenEncoderConfig
+      model_id_or_path: "chandar-lab/AMPLIFY_350M"
+      truncation: true
+      max_length: 1024
+      use_cache: false
+
+  esm_token:
+    _target_: apperitif.models.ESM.ESMTokenEncoder
+    config:
+      _target_: apperitif.models.ESM.ESMTokenEncoderConfig
+      model_id_or_path: "facebook/esm2_t33_650M_UR50D"
+      truncation: true
+      max_length: 1024
+      use_cache: false
+
+# Example data configuration for token-level tasks
+data_config:
+  # For online evaluation (raw sequences)
+  online_data:
+    target_column: "labels"
+    # Dataset should have input_ids and labels fields
+    # Example: {"input_ids": [4, 5, 6, 7], "labels": [0, 1, 2, 1]}
+    
+  # For offline evaluation (precomputed embeddings)
+  offline_data:
+    _target_: apperitif.data.TokenEmbeddingsDataset.TokenEmbeddingsDataset
+    # Dataset should have embeddings and labels fields
+    # Example: {"embeddings": tensor(seq_len, hidden_size), "labels": tensor(seq_len)}
+    
+# Example complete evaluation pipeline configuration
+evaluation_pipeline:
+  model: amplify_token
+  evaluator: mlp_token_feature_extraction
+  data: online_data
+  device: "cuda"
+  output_dir: "results/token_evaluation"
+  
+# Usage in scripts:
+# 1. For online evaluation:
+#    - Use TokenEvaluator with evaluation_mode="online"
+#    - Provide datasets with input_ids and labels
+#    - Model extracts embeddings on-the-fly during evaluation
+#
+# 2. For offline evaluation:
+#    - Use MLPTokenEvaluator with evaluation_mode="offline" and precomputed=true
+#    - First extract embeddings using get_token_embeddings_and_labels()
+#    - Create TokenEmbeddingsDataset with precomputed embeddings
+#    - Train MLP heads on frozen embeddings
+#
+# 3. For finetuning evaluation:
+#    - Use MLPTokenEvaluator with evaluation_mode="offline" and finetuning=true
+#    - Model backbone is unfrozen and trained end-to-end
+#    - Usually requires smaller batch sizes due to memory constraints

@@ -1,0 +1,8 @@
+# TRM: single forward pass, lm_head-input (dec) embedding.
+defaults:
+  - trm
+  - _self_
+
+carry_mode: none
+embed_mode: dec
+model_name: trm_none_dec

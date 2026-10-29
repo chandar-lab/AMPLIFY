@@ -1,0 +1,15 @@
+# MLP Finetuning Grid (unfrozen backbone)
+# This grid is used for finetuning with unfrozen backbone
+
+# Override base MLP parameters for finetuning
+finetuning: true
+precomputed: false
+
+# Hyperparameter grid for finetuning
+hidden_size: [128, 512]
+learning_rate: [1e-4, 5e-5]
+num_epochs: [5, 10]
+weight_decay: [0, 1e-3]
+batch_size: [32, 16, 8]
+seeds: [42, 43, 44]
+subbenchmark_name: mlp_finetuning_restricted

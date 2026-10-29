@@ -1,0 +1,8 @@
+defaults:
+  - biomap_research_sequence_classification
+
+dataset_name: biomap-research/solubility_prediction
+split_train: true
+split_seed: 42
+num_labels: 2
+name: solubility_prediction

@@ -1,0 +1,6 @@
+# KNN Extended Grid
+# This grid contains extended hyperparameters for KNN evaluators
+
+# KNN hyperparameter grid
+k: [1, 3, 5, 10, 20]
+subbenchmark_name: knn_extended

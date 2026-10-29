@@ -1,0 +1,11 @@
+defaults:
+  - amplify
+  - _self_
+
+# Local HuggingFace-format AMPLIFY checkpoint.
+# Override model_name at runtime:
+#   model.model_name=/abs/path/to/hf_checkpoints/checkpoint_N
+from_hub: true
+model_name: null
+use_packed_sequence: true
+max_length: 512

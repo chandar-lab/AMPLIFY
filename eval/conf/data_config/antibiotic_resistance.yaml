@@ -1,0 +1,8 @@
+defaults:
+  - biomap_research_sequence_classification
+
+dataset_name: biomap-research/antibiotic_resistance
+split_train: true
+split_seed: 42
+num_labels: 19
+name: antibiotic_resistance

@@ -1,0 +1,7 @@
+defaults:
+  - biomap_research_sequence_regression
+
+dataset_name: biomap-research/optimal_ph
+split_train: false
+split_seed: null
+name: optimal_ph

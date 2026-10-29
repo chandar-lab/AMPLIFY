@@ -1,0 +1,22 @@
+# Bayesian hyperparameter search via optuna TPE.
+# Replaces the exhaustive 324-combination grid with n_trials=50 TPE trials
+# (1 seed per trial for speed, best config re-evaluated with all seeds).
+#
+# The lists below define the search space for each parameter:
+#   - categorical params (hidden_size, num_epochs, batch_size): sampled from the list
+#   - continuous params (learning_rate, weight_decay): log-uniform between list min and max
+#
+# To revert to exhaustive grid search on the same space, set bayes: false.
+
+finetuning: false
+precomputed: true
+bayes: true
+n_trials: 50
+
+hidden_size: [1024, 2048]
+learning_rate: [1e-4, 1e-3]
+num_epochs: [10, 20, 40]
+weight_decay: [1e-4, 1e-3]
+batch_size: [32, 64, 128]
+seeds: [42, 43, 44]
+subbenchmark_name: mlp_bayes

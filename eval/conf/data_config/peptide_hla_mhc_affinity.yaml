@@ -1,0 +1,13 @@
+defaults:
+  - biomap_research_sequence_classification
+
+dataset_name: biomap-research/peptide_HLA_MHC_affinity
+split_train: false
+split_seed: null
+num_labels: 2
+name: peptide_hla_mhc_affinity
+
+# xTrimoPGLM (Chen et al. 2024) reports AUROC for this task; select and report by it.
+evaluator_overrides:
+  metrics: ["roc_auc", "accuracy", "f1"]
+  decision_metric: "roc_auc"

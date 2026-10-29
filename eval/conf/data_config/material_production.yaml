@@ -1,0 +1,13 @@
+defaults:
+  - biomap_research_sequence_classification
+
+dataset_name: biomap-research/material_production
+split_train: true
+split_seed: 42
+num_labels: 2
+name: material_production
+
+# xTrimoPGLM (Chen et al. 2024) reports AUROC for this task; select and report by it.
+evaluator_overrides:
+  metrics: ["roc_auc", "accuracy", "f1"]
+  decision_metric: "roc_auc"

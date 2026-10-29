@@ -1,0 +1,6 @@
+# RecAMPLIFY size overrides: 12 EncoderBlocks at hidden 960 ~ 133 M parameters.
+# num_hidden_layers is derived from the layer partition in recamplify.yaml.
+
+hidden_size: 960
+num_attention_heads: 15   # head_dim = 64
+intermediate_size: 2560

@@ -1,0 +1,29 @@
+# Base configuration for structure prediction evaluators
+# This file contains the common task-level parameters that apply to all evaluators for structure prediction
+
+# Metrics for contact map prediction across distance ranges
+metrics:
+  - local_AUC
+  - local_P@L
+  - local_P@L2
+  - local_P@L5
+  - short_AUC
+  - short_P@L
+  - short_P@L2
+  - short_P@L5
+  - medium_AUC
+  - medium_P@L
+  - medium_P@L2
+  - medium_P@L5
+  - long_AUC
+  - long_P@L
+  - long_P@L2
+  - long_P@L5
+
+# Decision metric used during validation
+decision_metric: "medium_P@L5"
+
+reduction_method: "mean"
+target_column: "labels"
+precomputing_batch_size: 64
+autocast_precision: "fp16"

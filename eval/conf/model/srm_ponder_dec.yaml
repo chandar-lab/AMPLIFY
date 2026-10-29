@@ -1,0 +1,8 @@
+# SRM ponder_act: PonderNet internal ACT, lm_head-input (dec) embedding.
+defaults:
+  - trm
+  - _self_
+
+carry_mode: ponder_act
+embed_mode: dec
+model_name: srm_ponder_dec

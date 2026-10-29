@@ -1,0 +1,8 @@
+defaults:
+  - biomap_research_sequence_classification
+
+dataset_name: biomap-research/fold_prediction
+split_train: false
+split_seed: null
+num_labels: 1195
+name: fold_prediction

@@ -1,0 +1,24 @@
+# Hydra root config for RecAMPLIFY pretraining (scripts/pretrain_rec.py).
+defaults:
+  - data: base
+  - model:
+    - amplify
+    - recamplify
+    - 120M_rec
+    - tokenizer
+  - training_args: rec
+  - _self_
+
+seed: 42
+
+hydra:
+  run:
+    dir: ${training_args.output_dir}/hydra
+
+wandb:
+  name: null
+  project: amplify-trm
+  entity: ${oc.env:WANDB_ENTITY,null}
+  tags: []
+  dir: ${training_args.output_dir}/wandb
+  mode: online

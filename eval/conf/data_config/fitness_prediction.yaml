@@ -1,0 +1,7 @@
+defaults:
+  - biomap_research_sequence_regression
+
+dataset_name: biomap-research/fitness_prediction
+split_train: false
+split_seed: null
+name: fitness_prediction

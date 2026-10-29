@@ -1,0 +1,6 @@
+# Base configuration for biomap research sequence regression tasks
+_target_: apperitif.tasks.sequence_regression.biomap_research.BiomapResearchSequenceRegressionConfig
+sequence_column: seq
+label_column: label
+label_dtype: float
+task_type: "sequence_regression"

@@ -1,0 +1,12 @@
+# Evaluation-only dependencies, on top of the training environment.
+#
+# The training environment (torch 2.10+cu128, transformers 4.57, flash-attn 2.8.3)
+# supplies torch / transformers / datasets / numpy / hydra-core. The upstream suite's
+# pyproject pinned torch 2.5 / transformers 4.49 / numpy 1.26, which conflict with this repo;
+# every published number was in fact produced in the training env, so those pins are dropped.
+optuna>=3.6          # TPE hyperparameter search + resumable SQLite studies
+scikit-learn>=1.4    # accuracy / f1 / roc_auc, KNN and logistic probes
+scipy>=1.11          # spearmanr
+pandas>=2.0          # results wrangling
+pyarrow>=14          # per-position parquet sidecars
+polars>=0.20         # fast CSV/parquet paths in the DMS scripts

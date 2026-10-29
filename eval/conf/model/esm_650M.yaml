@@ -1,0 +1,6 @@
+defaults:
+  - esm
+
+local_name: esm_650M
+model_name: "facebook/esm2_t33_650M_UR50D"
+num_total_attn_maps: 1320

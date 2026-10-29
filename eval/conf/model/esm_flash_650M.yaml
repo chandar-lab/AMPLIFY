@@ -1,0 +1,6 @@
+defaults:
+  - esm_flash
+
+local_name: esm_flash_650M
+model_name: "davidhd/esm2-flash-650M"
+num_total_attn_maps: 1320

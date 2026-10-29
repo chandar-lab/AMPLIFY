@@ -1,0 +1,9 @@
+# Linear Default Grid (unified for both classification and regression)
+# This grid contains default hyperparameters for linear evaluators
+# Note: C is used for classification (inverse regularization), alpha for regression (regularization strength)
+
+# Linear hyperparameter grid
+C: 1.0          # Classification parameter (inverse regularization)
+alpha: 1.0      # Regression parameter (regularization strength)
+max_iter: 100
+subbenchmark_name: linear_default

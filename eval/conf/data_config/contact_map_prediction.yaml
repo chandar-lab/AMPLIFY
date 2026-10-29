@@ -1,0 +1,7 @@
+defaults:
+  - biomap_research_structure_prediction
+
+dataset_name: biomap-research/contact_prediction_binary
+split_train: false
+split_seed: 42
+name: contact_map_prediction

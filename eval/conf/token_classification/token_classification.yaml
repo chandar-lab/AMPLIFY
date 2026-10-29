@@ -1,0 +1,10 @@
+# Base configuration for token classification evaluators
+# This file contains the common task-level parameters that apply to all evaluators for token classification
+
+# Common task-level parameters
+metrics: ["accuracy", "f1"]
+decision_metric: "accuracy"
+target_column: "labels"
+precomputing_batch_size: 32
+autocast_precision: "fp16"
+reduction_method: "mean"

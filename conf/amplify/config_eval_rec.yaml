@@ -1,0 +1,31 @@
+# Hydra root config for evaluating a pretrained recAMPLIFY checkpoint (scripts/eval_rec.py).
+#
+#   python scripts/eval_rec.py \
+#     +training_args.checkpoint_dir=<run>/hf_checkpoints/checkpoint_100000 \
+#     +data.validation_files.uniprot=<path>/uniprot.fasta
+#
+# The architecture comes entirely from the checkpoint's config.json; the model group below is
+# only used for the tokenizer.
+defaults:
+  - data: base
+  - model:
+    - amplify
+    - recamplify
+    - 120M_rec
+    - tokenizer
+  - training_args: rec
+  - _self_
+
+seed: 42
+
+training_args:
+  # Checkpoint directory to evaluate (required).
+  checkpoint_dir: null
+  # Optional: re-run the checkpoint at a different recursion depth.
+  eval_l_cycles: null
+  per_device_eval_batch_size: 32
+  per_device_eval_batch_tokens: null
+
+hydra:
+  run:
+    dir: ${training_args.output_dir}/hydra_eval

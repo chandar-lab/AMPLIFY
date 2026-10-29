@@ -1,0 +1,12 @@
+defaults:
+  - biomap_research_sequence_regression
+
+dataset_name: biomap-research/enzyme_catalytic_efficiency
+split_train: false
+split_seed: null
+name: enzyme_catalytic_efficiency
+
+# xTrimoPGLM (Chen et al. 2024) reports Pearson correlation for this task; select and report by it.
+evaluator_overrides:
+  metrics: ["pearsonr", "spearmanr", "mse", "r2"]
+  decision_metric: "pearsonr"

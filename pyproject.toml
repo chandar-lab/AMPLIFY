@@ -1,0 +1,70 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "amplify"
+version = "0.0.0"
+description = "recAMPLIFY: Large-Scale Pretraining of Recursive Protein Language Models"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT License" }
+authors = [
+    { name = "Saurav Jha", email = "saurav.jha@mila.quebec" },
+    { name = "Qianli Liao", email = "lql@mit.edu" },
+    { name = "Robert McCoy Vernon", email = "rverno01@amgen.com" },
+    { name = "Sarath Chandar", email = "sarath.chandar@mila.quebec" },
+    { name = "Quentin Fournier", email = "quentin.fournier@mila.quebec" },
+]
+maintainers = [
+    { name = "Saurav Jha", email = "saurav.jha@mila.quebec" },
+    { name = "Quentin Fournier", email = "quentin.fournier@mila.quebec" },
+]
+keywords = [
+    "Machine Learning",
+    "Large Language Models",
+    "Protein Language Models",
+    "Protein Design",
+    "Evaluation",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+dependencies = [
+    "accelerate==1.11.0",
+    "datasets==4.2.0",
+    "hydra-core==1.3.2",
+    "huggingface-hub==0.36.2",
+    "numpy==2.2.6",
+    "nvidia-ml-py==13.590.48",
+    "omegaconf==2.3.0",
+    "pyarrow==23.0.0",
+    "pyyaml==6.0.3",
+    "tokenizers==0.22.2",
+    "torch==2.10.0",
+    "tqdm==4.67.3",
+    "transformers==4.57.6",
+    "wandb==0.22.2",
+]
+
+[project.optional-dependencies]
+flash-attn = [
+    "flash-attn==2.8.3",
+]
+
+[project.urls]
+Homepage = "https://github.com/chandar-lab/AMPLIFY/tree/recamplify"
+Repository = "https://github.com/chandar-lab/AMPLIFY/tree/recamplify"
+Issues = "https://github.com/chandar-lab/AMPLIFY/issues"
+Documentation = "https://github.com/chandar-lab/AMPLIFY/tree/recamplify"
+
+[tool.setuptools.packages.find]
+where = ["src"]

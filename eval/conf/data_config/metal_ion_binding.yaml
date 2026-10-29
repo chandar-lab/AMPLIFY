@@ -1,0 +1,8 @@
+defaults:
+  - biomap_research_sequence_classification
+
+dataset_name: biomap-research/metal_ion_binding
+split_train: true
+split_seed: 42
+num_labels: 2
+name: metal_ion_binding

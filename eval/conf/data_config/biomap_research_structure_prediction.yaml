@@ -1,0 +1,6 @@
+# Base configuration for biomap research structure prediction tasks
+_target_: apperitif.tasks.structure_prediction.biomap_research.BiomapResearchStructurePredictionConfig
+sequence_column: seq
+label_column: label
+label_dtype: list
+task_type: "sequence_structure"

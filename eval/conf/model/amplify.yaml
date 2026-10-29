@@ -1,0 +1,6 @@
+_target_: apperitif.models.Amplify.AmplifyConfig
+model_type: amplify
+max_length: 2048
+use_attn_maps: false
+hf_kwargs:
+  trust_remote_code: true

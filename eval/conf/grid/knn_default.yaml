@@ -1,0 +1,6 @@
+# KNN Default Grid
+# This grid contains default hyperparameters for KNN evaluators
+
+# KNN hyperparameter grid
+k: [1, 3, 5]
+subbenchmark_name: knn_default

@@ -1,0 +1,6 @@
+# Base configuration for biomap research token classification tasks
+_target_: apperitif.tasks.token_classification.biomap_research.BiomapResearchTokenClassificationConfig
+sequence_column: seq
+label_column: label
+label_dtype: int
+task_type: "token_classification"

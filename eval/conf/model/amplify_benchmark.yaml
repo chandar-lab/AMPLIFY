@@ -1,0 +1,13 @@
+defaults:
+  - amplify
+  - _self_
+
+local_name: amplify_benchmark
+model_name: "Lolalb/AMPLIFY_benchmark"
+attention_mask_type: bool
+attention_mask_dtype: bool
+num_total_attn_maps: 480
+use_packed_sequence: true
+hf_kwargs:
+  trust_remote_code: true
+  token: ${oc.env:HF_TOKEN,null}  # read from the environment; never commit a token

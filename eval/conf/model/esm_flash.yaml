@@ -1,0 +1,9 @@
+# ESM-Flash base configuration (trusts remote code from esm2-flash repository)
+defaults:
+  - esm
+  - _self_
+
+hf_kwargs:
+  trust_remote_code: true
+use_attn_maps: true
+use_packed_sequence: true

@@ -1,0 +1,13 @@
+defaults:
+  - amplify
+  - _self_
+
+model_name: "AMPLIFY_120M_U100"
+from_hub: false
+base_path: ${oc.env:CKPT_DIR,/path/to/checkpoints}
+vocab_path: ${oc.env:VOCAB_PATH,/path/to/amplify_vocab.txt}
+tag: null
+attention_mask_type: bool
+attention_mask_dtype: bool
+num_total_attn_maps: 240
+use_packed_sequence: true

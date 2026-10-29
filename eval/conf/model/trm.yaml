@@ -1,0 +1,45 @@
+# Base config for TRM / SRM encoder.
+# Override checkpoint_path, carry_mode, eval_steps, embed_mode on the CLI.
+#
+# Examples
+# --------
+# recAMPLIFY checkpoint (any of the five variants), decoder-input embedding:
+#   python main.py model=trm \
+#     model.checkpoint_path=/path/to/hf_checkpoints/checkpoint_100000 \
+#     model.carry_mode=ponder_act model.embed_mode=dec \
+#     model.model_name=srm_ponder_dec
+
+_target_: apperitif.models.TRM.TRMConfig
+
+model_type: trm
+model_name: trm             # used for output-folder naming
+local_name: null            # override display name; null → model_name
+
+# Path to the HF checkpoint directory saved by the recursive trainer.
+# Must contain: config.json, model.safetensors (or pytorch_model.bin),
+# tokenizer.json, tokenizer_config.json.
+checkpoint_path: null
+
+# --- eval carry strategy ---
+carry_mode: none            # none | inference_act | ponder_act | full_ponder_act
+eval_steps: 4               # outer ACT passes for inference_act (ignored otherwise)
+h_cycles: null              # null = use model's trained H_cycles; int = override
+l_cycles: null              # null = use model's trained L_cycles; int = override
+                            # for ponder_act/full_ponder_act: sets max ACT steps and
+                            # rebuilds the geometric prior buffer to match
+
+# --- embedding extraction ---
+embed_mode: dec             # dec (lm_head input, post-norm); z is not supported
+
+# --- ponder_act / full_ponder_act decode ---
+ponder_eval_decode: weighted  # weighted (Σ p_n·z_n) | greedy (z at argmax p_n)
+
+# --- tokenizer / attention mask ---
+vocab_path: null            # fallback vocab file if not bundled in checkpoint
+attention_mask_type: multiplicative
+attention_mask_dtype: fp16
+
+# --- misc ---
+max_length: 2048
+use_packed_sequence: false
+randomize: false

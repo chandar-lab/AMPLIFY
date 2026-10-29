@@ -1,0 +1,7 @@
+# Datasets {name: path}
+train_files: {}
+validation_files: {}
+
+# Data loading settings
+shuffle: true
+num_proc: 4

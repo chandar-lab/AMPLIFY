@@ -1,0 +1,77 @@
+# ---- Reference material and manuscript, not part of the code release ----------
+paper/
+old_approach/
+paper_figures/
+
+# ---- Internal working notes (reference paper/ and old_approach/) --------------
+CLAUDE.md
+CONSTRAINTS.md
+SKILLS.md
+
+# ---- Launchers: only the two generic launchers and their shared variant table ship
+jobs/*
+!jobs/run_slurm.sh
+!jobs/run_node.sh
+!jobs/variant.sh
+
+# ---- Superseded upstream eval notes (replaced by eval/README.md) -------------
+eval/EVAL_SUITE_README.md
+
+# ---- Eval files not part of the release: stale, broken against src/, or tied to removed diagnostics
+eval/conf/backup/
+eval/conf/model/*_z.yaml
+eval/conf/model/trm_iac4_*.yaml
+eval/apperitif/models/model_test.py
+eval/scripts/eval_consensus/prep_transfer.ipynb
+eval/scripts/eval_ppl/pseudo_perplexity.py
+eval/scripts/eval_consensus/sequence_recovery.py
+eval/scripts/eval_validation/
+eval/scripts/analyses/
+eval/scripts/pass_at_k.py
+eval/scripts/red_verifier.py
+eval/scripts/eval_calibration/uniprot_dev_halt_capture.py
+
+# ---- Site-local launchers: they contain absolute cluster paths ---------------
+*.local.sh
+.activate_*
+
+# ---- Python -------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+env/
+
+# ---- Run artefacts ------------------------------------------------------------
+logs/
+outputs/
+wandb/
+checkpoints/
+hf_checkpoints/
+*.out
+*.err
+slurm-*.out
+slurm-*.err
+multirun/
+hydra/
+
+# ---- Evaluation artefacts -----------------------------------------------------
+eval_results/
+optuna_study.db
+*.parquet
+*.npz
+
+# ---- Caches and editor --------------------------------------------------------
+.cache/
+.hydra/
+.ipynb_checkpoints/
+.DS_Store
+.idea/
+.vscode/
+
+# ---- Agent tooling --------------------------------------------------------------
+.claude/

@@ -1,0 +1,48 @@
+# recAMPLIFY architecture defaults.
+# Compose as: model=[amplify, recamplify, 120M_rec, tokenizer]
+#
+# Field names are inherited verbatim from the original AMPLIFYSRMConfig because they are the
+# wire format of every pretrained checkpoint's config.json.
+
+model_type: recamplify
+
+# Layer partition. num_core_layers is the TOTAL block count; the leading no_recur_layers and
+# trailing no_exit_layers are run once, and everything between them is the weight-tied core
+# applied L_cycles + 1 times (L cycles plus the read-out).
+num_core_layers: 12
+no_recur_layers: 2
+no_exit_layers: 2
+
+# Number of recursive cycles.
+L_cycles: 6
+
+# Context added to the injection bundle and to the read-out: "zero" or "zL0" (= z_init).
+context_type: zero
+
+# ── Gated Mixture Recurrence ────────────────────────────────────────────────
+# use_ponder_act=false is the fixed-depth baseline: every sequence runs exactly L cycles.
+use_ponder_act: false
+
+# Gate granularity (requires use_ponder_act=true):
+#   none    — halt-only GMR: a scalar halt head alone decides halting
+#   scalar  — one gate channel
+#   lowrank — ponder_gate_rank channels mapped to features by a row-softmaxed assignment
+#   perdim  — one gate channel per feature
+ponder_gate_mode: none
+ponder_gate_rank: 16
+
+# sigmoid(4) ~ 0.98: gates start open, so the recursion begins as a full replacement and must
+# learn to close.
+ponder_gate_init_bias: 4.0
+
+# Weight the mixture per feature rather than by a pooled scalar (gated modes only).
+ponder_decode_perdim: false
+# Apply the ponder cost per gate channel and average, rather than on the pooled mass.
+ponder_budget_perchannel: false
+
+# Cycles during which halting is blocked. 1 skips the first delta, where no previous BOS
+# latent exists. The gated variants require at least 1.
+ponder_act_min_steps: 1
+
+# Early exit once the cumulative un-halted mass drops below this.
+ponder_act_epsilon: 1e-3
